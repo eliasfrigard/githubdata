@@ -1,0 +1,21 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "local": "node -r dotenv/config app.js",
+    "tests": "ADDRESS=http://159.223.2.42:5000 pm2 start app.js --no-autorestart"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "axios": "^0.26.1",
+    "chart.js": "^3.7.1",
+    "cli-progress": "^3.10.0",
+    "dotenv": "^16.0.0"
+  }
+}

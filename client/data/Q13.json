@@ -1,0 +1,838 @@
+[
+  {
+    "_id": "623835c8bf8f75133a87f79d",
+    "id": 461091755,
+    "number": 188,
+    "title": "Experimental asset sync does not honor asset_roles during sync",
+    "body": "With the `experimental_asset_sync` feature enabled for a given app, the `precompile_assets` phase has two modes of operation: compiling assets and reusing assets.\r\n\r\nThings work as expected when the deploy follows the \"reuse\" branch, but not when the deploy follows the \"compile\" branch.\r\n\r\n## Expected Behavior ##\r\n\r\nWhether assets are reused or compiled, each instance that matches the `asset_roles` configured for the application will receive direction to either sync the new assets or reuse the previous build's assets, but no other instances receive any direction.\r\n\r\n## Actual Behavior ##\r\n\r\nWhen assets are reused, each instance that matches the `asset_roles` configured for the application are directed to reuse the previous build's assets.\r\n\r\nHowever, when assets are compiled, each instance that is not `app_master` is directed to sync the assets from `app_master`, including those not matching the configured `asset_roles`.\r\n\r\n## Affected Versions ##\r\n\r\nPresumably all, but definitely 2.6.17 and 2.6.19, the two most recent published releases.\r\n\r\n## Aside ##\r\n\r\nThis bug was discovered by a single customer that relies on the incorrect behavior. They have added the proper `asset_roles` configuration to ensure that their desired behavior continues if this bug should be squashed.",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 100406, "login": "ess", "type": "User", "url": "https://api.github.com/users/ess" },
+    "labels": [
+      {
+        "id": 50268,
+        "node_id": "MDU6TGFiZWw1MDI2OA==",
+        "url": "https://api.github.com/repos/engineyard/engineyard-serverside/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "engineyard-serverside",
+    "organization": "engineyard",
+    "comments_url": "https://api.github.com/repos/engineyard/engineyard-serverside/issues/188/comments",
+    "comment_count": 0,
+    "created_at": "2019-06-26T17:22:35Z",
+    "updated_at": "2019-06-27T18:16:15Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f7bb",
+    "id": 360002329,
+    "number": 158,
+    "title": "Latest release path calculation should only consider release-shaped locations",
+    "body": "Currently, the `latest_release` path is, effectively, just `Dir[\"/data/appname/releases/*\"].last`\n\nAs we've seen recently, this totally breaks if a non-release item is inadvertently created in the releases directory.\n\nAt the least, we should filter for things that match a \"probably release directory\" regex or something.",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 100406, "login": "ess", "type": "User", "url": "https://api.github.com/users/ess" },
+    "labels": [
+      {
+        "id": 50268,
+        "node_id": "MDU6TGFiZWw1MDI2OA==",
+        "url": "https://api.github.com/repos/engineyard/engineyard-serverside/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      },
+      {
+        "id": 1055985065,
+        "node_id": "MDU6TGFiZWwxMDU1OTg1MDY1",
+        "url": "https://api.github.com/repos/engineyard/engineyard-serverside/labels/backlog",
+        "name": "backlog",
+        "color": "ededed",
+        "default": false,
+        "description": null
+      }
+    ],
+    "repo": "engineyard-serverside",
+    "organization": "engineyard",
+    "comments_url": "https://api.github.com/repos/engineyard/engineyard-serverside/issues/158/comments",
+    "comment_count": 0,
+    "created_at": "2018-09-13T17:59:08Z",
+    "updated_at": "2018-09-13T18:15:06Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f7eb",
+    "id": 41757501,
+    "number": 110,
+    "title": "Don't choke on compound version constraints for bundler.",
+    "body": "The following breaks the lockfile parser. We shouldn't even need the lockfile parser anymore because bundler is much more stable and the newest versions will work for the majority of people.\n\n```\ngem 'bundler', '~>1.6', '>= 1.6.2'\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 989,
+      "login": "martinemde",
+      "type": "User",
+      "url": "https://api.github.com/users/martinemde"
+    },
+    "labels": [
+      {
+        "id": 50268,
+        "node_id": "MDU6TGFiZWw1MDI2OA==",
+        "url": "https://api.github.com/repos/engineyard/engineyard-serverside/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "engineyard-serverside",
+    "organization": "engineyard",
+    "comments_url": "https://api.github.com/repos/engineyard/engineyard-serverside/issues/110/comments",
+    "comment_count": 0,
+    "created_at": "2014-09-02T21:34:19Z",
+    "updated_at": "2014-09-03T03:54:15Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9bb",
+    "id": 187585902,
+    "number": 313,
+    "title": "can't retrieve anonymous class",
+    "body": "Hobo applications ([http://hobocentral.net](http://hobocentral.net/)) use anonymous classes for enum_strings ([http://hobocentral.net/manual/hobo_fields/rich_types#enum-strings](http://hobocentral.net/manual/hobo_fields/rich_types#enum-strings)) for populating columns from a drop-down selection list.  A \"can't retrieve anonymous class\" error is raised when changes are made to the values of these columns.  Is there anything configuration in audited that can be set to avoid this error, or is it a bug?\r\nI have attached a rails server trace as well as a complete hobo/rails application that exhibits the problem.\r\n[rails-server-trace.txt](https://github.com/collectiveidea/audited/files/574079/rails-server-trace.txt)\r\n\r\n[AuditedFail.zip](https://github.com/collectiveidea/audited/files/574080/AuditedFail.zip)\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 88340,
+      "login": "hbaragar",
+      "type": "User",
+      "url": "https://api.github.com/users/hbaragar"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/313/comments",
+    "comment_count": 1,
+    "created_at": "2016-11-06T20:18:31Z",
+    "updated_at": "2017-04-07T07:26:30Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9c0",
+    "id": 185092275,
+    "number": 308,
+    "title": "Audit potentially influences JSON rendering",
+    "body": "Hi,\r\n\r\nFirst of all, thanks for publishing this. Comes in really handy.\r\nUnfortunately I've encountered a rather peculiar issue.\r\n\r\nOur JSON endpoints no longer outputs any JSON in the response. Eventually I could trace this down to just the addition of audited and rails-observers. When these are added to the Gemfile, the response body of JSON endpoints becomes blank.\r\n\r\nWhen I remove the gems, everything returns to normal. Note that besides adding these gems, audited is not used in the rails app (e.g. by adding `audited` to the model).\r\n\r\nI have to say I'm quite astonished by this. Haven't investigated it further yet.\r\n\r\nI'm using Rails 5.0.0.1 and ruby 2.3.1p112.\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 1686739,
+      "login": "edwardmp",
+      "type": "User",
+      "url": "https://api.github.com/users/edwardmp"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      },
+      {
+        "id": 73415,
+        "node_id": "MDU6TGFiZWw3MzQxNQ==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/feedback",
+        "name": "feedback",
+        "color": "96f3fa",
+        "default": false,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/308/comments",
+    "comment_count": 6,
+    "created_at": "2016-10-25T11:41:16Z",
+    "updated_at": "2017-04-07T07:27:45Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9cc",
+    "id": 178391047,
+    "number": 296,
+    "title": "Adding \"audited\" to model causes \"version\" attribute to read nil when called",
+    "body": "I have this basic model:\n`class Board < ActiveRecord::Base`\n     `belongs_to :product`\n     `audited`\n     `# audited :associated_with => :product   # this doesn't work either`\n`end`\n\nThis model has attributes \"name\" and \"version\" (among others). If I comment out the `audited` line, all works normally. However, with either audited line present, the \"version\" attribute always comes up nil when I try to retrieve `@product.boards[0].version`, even though `@product.boards[0].name` works just fine. In the console I can clearly see that both \"name\" and \"version\" are present. \n\nAny ideas? Audited seems to work fine on all my other models, and it's only this \"version\" attribute that it causes problems with. I'm happy to provide more code if necessary.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 6273917,
+      "login": "davismattg",
+      "type": "User",
+      "url": "https://api.github.com/users/davismattg"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/296/comments",
+    "comment_count": 7,
+    "created_at": "2016-09-21T16:01:44Z",
+    "updated_at": "2017-09-21T15:59:17Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9d3",
+    "id": 173209682,
+    "number": 289,
+    "title": "undefined class/module ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Integer during deserialisation",
+    "body": "I'm in the middle of upgrading a decent sized application to Rails 5, and audited is one of the gems we love and enjoy to use a fair bit.\n\nWith one of the objects I am running into the following error when we call `associated_audits` on it:\n\n`undefined class/module ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Integer`\n\nI've checked and followed all guidance here in general about upgrades, and have been flailing about on this issue long enough to come here. \n\nHere is my stacktrace:\n\n```\nArgumentError: undefined class/module ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Integer\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/class_loader.rb:53:in `path2class'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/class_loader.rb:53:in `resolve'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/class_loader.rb:45:in `find'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/class_loader.rb:27:in `load'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:379:in `resolve_class'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:207:in `visit_Psych_Nodes_Mapping'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/visitor.rb:15:in `visit'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/visitor.rb:5:in `accept'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:31:in `accept'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:321:in `block in revive_hash'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:319:in `each'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:319:in `each_slice'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:319:in `revive_hash'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/to_ruby.rb:161:in `visit_Psych_Nodes_Mapping'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/visitor.rb:15:in `visit'\n    from /Users/my_user_name/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/psych/visitors/visitor.rb:5:in `accept'\n... 62 levels...\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/attribute_set.rb:42:in `fetch_value'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/attribute_methods/read.rb:66:in `_read_attribute'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/attribute_methods/read.rb:53:in `read_attribute'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/attribute_methods.rb:297:in `attribute_for_inspect'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/core.rb:485:in `block in inspect'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/core.rb:483:in `collect'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/core.rb:483:in `inspect'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/relation.rb:683:in `map!'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/activerecord-5.0.0.1/lib/active_record/relation.rb:683:in `inspect'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/railties-5.0.0.1/lib/rails/commands/console.rb:65:in `start'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/railties-5.0.0.1/lib/rails/commands/console_helper.rb:9:in `start'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/railties-5.0.0.1/lib/rails/commands/commands_tasks.rb:78:in `console'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/railties-5.0.0.1/lib/rails/commands/commands_tasks.rb:49:in `run_command!'\n    from /Users/my_user_name/.rvm/gems/ruby-2.2.3/gems/railties-5.0.0.1/lib/rails/commands.rb:18:in `<top (required)>'\n  from bin/rails:4:in `require'\n```\n\nThe object runs a standard\n\n```\naudited\nhas_associated_audits\n```\n\nin the model file.\n\nWould love to hear your feedback on what I'm missing here, also more than happy to provide any other supplementary info as needed. I'll have the window open for the next ten hours or so and should be quick to respond today and tomorrow.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 7865030,
+      "login": "Schwad",
+      "type": "User",
+      "url": "https://api.github.com/users/Schwad"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      },
+      {
+        "id": 73415,
+        "node_id": "MDU6TGFiZWw3MzQxNQ==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/feedback",
+        "name": "feedback",
+        "color": "96f3fa",
+        "default": false,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/289/comments",
+    "comment_count": 19,
+    "created_at": "2016-08-25T13:55:39Z",
+    "updated_at": "2018-03-24T16:10:12Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9fd",
+    "id": 120958710,
+    "number": 247,
+    "title": "Avoid orphans on destroy to fix issues with MySQL",
+    "body": "Currently I stumbled upon a serious issue using **audited** with MySQL. \n\n[MySQL doesn't manage persistent AUTOINCREMENT values for InnoDB tables](http://dev.mysql.com/doc/refman/5.7/en/innodb-auto-increment-handling.html#innodb-auto-increment-initialization): After a server restart, MySQL calculates the next value by doing a `SELECT MAX(id)+1 FROM table`. Because of this, a value can be reused if you delete the last inserted record. Since 10 years ago there is a [bugreport](https://bugs.mysql.com/bug.php?id=21641) for this.\n\nThis is a problem with **audited**, because in its current implementation it creates orphans if a record gets destroyed (audit record associated with a non-existing auditable / associated).\n\nA possible solution could be:\n1. Use `dependent: :nullify` for both `has_many` associations\n2. Set `:auditable` to NULL for audits with `action == 'destroy'`\n\nWhat do you think? Are you open for a PR to fix this issue?\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 3557,
+      "login": "ledermann",
+      "type": "User",
+      "url": "https://api.github.com/users/ledermann"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/247/comments",
+    "comment_count": 1,
+    "created_at": "2015-12-08T08:29:48Z",
+    "updated_at": "2017-04-07T07:35:23Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87f9ff",
+    "id": 119056296,
+    "number": 245,
+    "title": "associated_audits sorting in wrong column ",
+    "body": "O was trying to get associated changes but the sort was using `version` column. This column references each associated audit, in real sort must use `created_at` column instead, so sort order will be correct.\n\n``` ruby\nProposal.take.associated_audits\n```\n\n``` sql\n--  Proposal Load (0.4ms)\nSELECT  `proposals`.*\n  FROM `proposals`\n  LIMIT 1\n\n--  Audited::Adapters::ActiveRecord::Audit Load (0.5ms)\nSELECT  `audits`.*\n  FROM `audits`\n  WHERE `audits`.`associated_id` = 1\n    AND `audits`.`associated_type` = 'Proposal'\n  ORDER BY `audits`.`version`\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 94767,
+      "login": "dgmike",
+      "type": "User",
+      "url": "https://api.github.com/users/dgmike"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/245/comments",
+    "comment_count": 1,
+    "created_at": "2015-11-26T14:37:55Z",
+    "updated_at": "2017-11-01T07:46:58Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c8bf8f75133a87fa16",
+    "id": 72851607,
+    "number": 222,
+    "title": "Queries are not appending the database prefix",
+    "body": "When I configure _active_record.table_name_prefix=\"prefix\"_ on a rails3 project (activerecord/mysql), this error is generated:\n\n_ActiveRecord::StatementInvalid (Mysql2::Error: Table 'database.audits' doesn't exist: SHOW FULL FIELDS FROM `audits`):_\n\nThe queries are not appending the tables prefix. Can I force audits table name?\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 50914,
+      "login": "jsanroman",
+      "type": "User",
+      "url": "https://api.github.com/users/jsanroman"
+    },
+    "labels": [
+      {
+        "id": 56717,
+        "node_id": "MDU6TGFiZWw1NjcxNw==",
+        "url": "https://api.github.com/repos/collectiveidea/audited/labels/bug",
+        "name": "bug",
+        "color": "ff4c4c",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "audited",
+    "organization": "collectiveidea",
+    "comments_url": "https://api.github.com/repos/collectiveidea/audited/issues/222/comments",
+    "comment_count": 1,
+    "created_at": "2015-05-03T19:19:12Z",
+    "updated_at": "2019-08-01T10:05:15Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8811ca",
+    "id": 41720043,
+    "number": 394,
+    "title": "Focus problem with movie export and another document",
+    "body": "This happens when one document is exporting to a movie and at the same time you add a new node into another document. When you do this, the exporting document always gets the focus.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 49342,
+      "login": "stebanos",
+      "type": "User",
+      "url": "https://api.github.com/users/stebanos"
+    },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/394/comments",
+    "comment_count": 0,
+    "created_at": "2014-09-02T15:13:27Z",
+    "updated_at": "2014-09-02T15:13:27Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a88121b",
+    "id": 10266604,
+    "number": 313,
+    "title": "When the prototype is changed, deriving nodes don't change along.",
+    "body": "To reproduce:\n- Create a rect node (rect1).\n- Set width to 200.\n- Create another rect node (rect2) with rect1 as the prototype (this is not possible with the GUI interface).\n- Set height of rect2 to 200.\n- Set width of rect1 to 300.\n\nNotice that the width of rect2 is still at 200.\n- Now save and reopen the file.\n- The width of rect2 is now also at 300.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 49342,
+      "login": "stebanos",
+      "type": "User",
+      "url": "https://api.github.com/users/stebanos"
+    },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/313/comments",
+    "comment_count": 0,
+    "created_at": "2013-01-24T09:49:17Z",
+    "updated_at": "2013-01-24T09:51:54Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a881231",
+    "id": 8320975,
+    "number": 291,
+    "title": "When loading a CSV containing lines with empty cells, it will read the separator as cell value.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/291/comments",
+    "comment_count": 6,
+    "created_at": "2012-11-13T13:14:13Z",
+    "updated_at": "2012-11-26T11:00:29Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a881280",
+    "id": 6947704,
+    "number": 212,
+    "title": "When cancelling a metadata operation, no 'redo node metadata' menu item should be added.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": {
+      "id": 49342,
+      "login": "stebanos",
+      "type": "User",
+      "url": "https://api.github.com/users/stebanos"
+    },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/212/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-18T10:17:52Z",
+    "updated_at": "2012-09-18T10:17:52Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a881299",
+    "id": 6863574,
+    "number": 187,
+    "title": "Errors in the handle throw exceptions.",
+    "body": "Instead of exceptions, they should make the node red.\n\nRight now, no exception window is displayed, but the exceptions are silently discarded except for output in the Console.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/187/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:45:18Z",
+    "updated_at": "2012-09-13T22:45:18Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a88129a",
+    "id": 6863573,
+    "number": 186,
+    "title": "Print statements in handle code don't get output.",
+    "body": "They are printed but only to the console.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/186/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:45:17Z",
+    "updated_at": "2012-09-13T22:45:17Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a88129f",
+    "id": 6863567,
+    "number": 181,
+    "title": "Test what happens if param boundaries change on prototypes.",
+    "body": "1. Create a node with parameter with hard bounds 0-100.\n2. Create a new node with the other node as a prototype, and set the value to 99.\n3. Change the maximum bound on the prototype to 50.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/181/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:45:13Z",
+    "updated_at": "2012-09-13T22:45:13Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812ad",
+    "id": 6863548,
+    "number": 167,
+    "title": "The ordering of library loading is arbitrary.",
+    "body": "If library \"b\" depends on nodes from library \"a\", \"b\" can fail to load because \"a\" hasn't loaded yet.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/167/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:45:01Z",
+    "updated_at": "2012-09-13T22:45:01Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812b7",
+    "id": 6863535,
+    "number": 157,
+    "title": "You can't clone an empty path with cloneContours=true.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/157/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:44:52Z",
+    "updated_at": "2012-09-13T22:44:52Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812be",
+    "id": 6863528,
+    "number": 150,
+    "title": "Child nodes are copied in full.",
+    "body": "Copies of child nodes are not detected as equal to their prototype and are thus contained in full in the new script. This is wrong.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/150/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:44:47Z",
+    "updated_at": "2012-09-13T22:44:47Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812c8",
+    "id": 6863518,
+    "number": 140,
+    "title": "Transformed images (e.g. rotate) show jagged edges.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/140/comments",
+    "comment_count": 1,
+    "created_at": "2012-09-13T22:44:40Z",
+    "updated_at": "2012-09-13T22:44:41Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812cb",
+    "id": 6863515,
+    "number": 137,
+    "title": "colors: outline command produces wrong results.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/137/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:44:38Z",
+    "updated_at": "2012-09-13T22:44:38Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a8812d1",
+    "id": 6863508,
+    "number": 131,
+    "title": "Compound shape crashes sometimes with complex paths.",
+    "body": "This goes into the java Area class, which we have no control over.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/131/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:44:34Z",
+    "updated_at": "2012-09-13T22:44:34Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a881314",
+    "id": 6863426,
+    "number": 64,
+    "title": "ColorVisualizer and CanvasVisualizer should be able to handle nested lists.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/64/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:43:31Z",
+    "updated_at": "2012-09-13T22:43:31Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a881326",
+    "id": 6863405,
+    "number": 46,
+    "title": "When the prototype is changed, writes happen in wrong order.",
+    "body": "1. Create a node, called \"alpha\"\n2. Create a node with the \"alpha\" node as the prototype.\n3. Move the prototype.\n\nIf you save the file, \"alpha\" will be written first, causing the file not to open.\n\nThis is only a problem for corevector where we actually use generator / filter as the prototype.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/46/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:43:15Z",
+    "updated_at": "2012-09-13T22:43:15Z",
+    "closed_at": null
+  },
+  {
+    "_id": "623835c9bf8f75133a88132a",
+    "id": 6863400,
+    "number": 42,
+    "title": "Dragging the handle out of the view causes the view to become unresponsive.",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "open",
+    "author": { "id": 8477, "login": "fdb", "type": "User", "url": "https://api.github.com/users/fdb" },
+    "labels": [
+      {
+        "id": 13925649,
+        "node_id": "MDU6TGFiZWwxMzkyNTY0OQ==",
+        "url": "https://api.github.com/repos/nodebox/nodebox/labels/bug",
+        "name": "bug",
+        "color": "e10c02",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "nodebox",
+    "organization": "nodebox",
+    "comments_url": "https://api.github.com/repos/nodebox/nodebox/issues/42/comments",
+    "comment_count": 0,
+    "created_at": "2012-09-13T22:43:13Z",
+    "updated_at": "2012-09-13T22:43:13Z",
+    "closed_at": null
+  }
+]

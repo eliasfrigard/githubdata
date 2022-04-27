@@ -1,0 +1,1 @@
+This folder has output data from different queries that can be used as input data for other queries.

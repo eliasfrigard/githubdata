@@ -1,0 +1,2152 @@
+[
+  {
+    "_id": "62383667bf8f75133aa168ac",
+    "id": 148619765,
+    "number": 36,
+    "title": "Support for django 1.9?",
+    "body": "documentation says:\n\n> 1.4, 1.5, 1.6, 1.7, and 1.8\n\nis there a support for django 1.9?\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": { "id": 201263, "login": "noisy", "type": "User", "url": "https://api.github.com/users/noisy" },
+    "labels": [
+      {
+        "id": 215186044,
+        "node_id": "MDU6TGFiZWwyMTUxODYwNDQ=",
+        "url": "https://api.github.com/repos/revsys/django-test-plus/labels/bug",
+        "name": "bug",
+        "color": "fc2929",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "django-test-plus",
+    "organization": "revsys",
+    "comments_url": "https://api.github.com/repos/revsys/django-test-plus/issues/36/comments",
+    "comment_count": 1,
+    "created_at": "2016-04-15T10:12:05Z",
+    "updated_at": "2016-04-20T23:33:55Z",
+    "closed_at": "2016-04-20T23:33:55Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10b6d",
+    "id": 1148024603,
+    "number": 1019,
+    "title": "Incorrect key fetched from BoxAPIException in BoxAPIRequest.java method isResponseRetryable(int responseCode, BoxAPIException apiException), causing exception when connecting to BOX",
+    "body": "- [x ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nWhen connecting to Box using BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(), exception is thrown stating \r\n{\"error\":\"invalid_grant\",\"error_description\":\"Current date\\/time MUST be before the expiration date\\/time listed in the 'exp' claim\"}. This occurs due to exp time. In the flow, when the exception occurs and the response code 400, there are retry attempts , where the date advertised by the Box server in the exception is set the current time to synchronize clocks.So the next try will be successful. \r\nThere is error in reading the response body from the exception. \r\n\r\nIn the below method addressing the below code, the responseBody will not have key as code , it should be 'error' instead of 'code'. \r\nFixing this would solve the following  error. {\"error\":\"invalid_grant\",\"error_description\":\"Current date\\/time MUST be before the expiration date\\/time listed in the 'exp' claim\"}\r\nif (responseBody.get(\"code\") != null) {\r\n                errorCode = responseBody.get(\"code\").toString();**\r\n\r\n\r\n public static boolean isResponseRetryable(int responseCode, BoxAPIException apiException) {\r\n        String response = apiException.getResponse();\r\n        String message = apiException.getMessage();\r\n        String errorCode = \"\";\r\n\r\n        try {\r\n            JsonObject responseBody = Json.parse(response).asObject();\r\n            **if (responseBody.get(\"code\") != null) {\r\n                errorCode = responseBody.get(\"code\").toString();**\r\n            }\r\n        } catch (Exception e) {\r\n        }\r\n\r\n        Boolean isClockSkewError = responseCode == 400\r\n            && errorCode.contains(\"invalid_grant\")\r\n            && message.contains(\"exp\");\r\n\r\n        return (isClockSkewError\r\n            || responseCode >= 500\r\n            || responseCode == 429);\r\n    }\r\n\r\n### Steps to Reproduce\r\n\r\n\r\n### Expected Behavior\r\nThe retry attempt will connect to BOX as the Time synch with Box server is addressed.\r\nFeb 23, 2022 6:43:33 AM com.box.sdk.BoxLogger warn\r\nWARNING: Retrying authentication request due to transient error status=400 body={\"error\":\"invalid_grant\",\"error_description\":\"Current date\\/time MUST be before the expiration date\\/time listed in the 'exp' claim\"}\r\nPayload {\"iss\":\"gkyil0451ut5dgkvvbir5s21h5vk9npj\",\"aud\":\"https://api.box.com/oauth2/token\",\"exp\":1645616676,\"sub\":\"xxxxx\",\"box_sub_type\":\"enterprise\",\"jti\":\"GDWIOnaB1lWrF5w0bhEMosvN0M6aJ0ZmTzF6FsfiUrNfml0R9sh6yU4hqPGC6apjW0NvszDj_V_0xdEb_FDjxw\"}\r\nConnected to BOX \r\n\r\n### Error Message, Including Stack Trace\r\nFeb 23, 2022 6:43:33 AM com.box.sdk.BoxLogger warn\r\nWARNING: Response\r\nPOST https://api.box.com/oauth2/token\r\nHTTP/1.1 400 Bad Request\r\nTransfer-Encoding: chunked\r\nStrict-Transport-Security: max-age=31536000\r\nCache-Control: no-store\r\nConnection: keep-alive\r\nSet-Cookie: site_preference=desktop; path=/; domain=.box.com; secure, cn=27; expires=Thu, 23-Feb-2023 11:44:05 GMT; Max-Age=31536000; path=/; domain=.app.box.com; secure, bv=OPS-45038; expires=Wed, 02-Mar-2022 11:44:05 GMT; Max-Age=604800; path=/; domain=.app.box.com; secure, box_visitor_id=xxxxx; expires=Thu, 23-Feb-2023 11:44:05 GMT; Max-Age=31536000; path=/; domain=.box.com; secure\r\nDate: Wed, 23 Feb 2022 11:44:05 GMT\r\nContent-Type: application/json\r\n\r\n{\"error\":\"invalid_grant\",\"error_description\":\"Current date\\/time MUST be before the expiration date\\/time listed in the 'exp' claim\"}\r\n\r\n### Screenshots\r\n(https://github.com/box/box-java-sdk/blob/main/src/main/java/com/box/sdk/BoxAPIRequest.java) Line 198\r\n\r\n### Versions Used\r\nJava SDK:  Java 1.8\r\nJava: Java 1.8\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 25988494,
+      "login": "Prabharaja",
+      "type": "User",
+      "url": "https://api.github.com/users/Prabharaja"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/1019/comments",
+    "comment_count": 4,
+    "created_at": "2022-02-23T12:22:17Z",
+    "updated_at": "2022-02-28T16:26:07Z",
+    "closed_at": "2022-02-24T10:47:24Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10b98",
+    "id": 1096685305,
+    "number": 976,
+    "title": "Limit on Enterprise events is not working",
+    "body": "Hi,\r\n\r\nI saw this referenced in another issue but I don't believe it's the same.  I am creating an enterprise events request with a page size of 500.  Basically, the 500 is getting ignored and always defaults to 100.  Is it a bug or is there something else that I need to do?\r\n\r\nEnterpriseEventsRequest request = new EnterpriseEventsRequest();\r\nrequest = request.limit(500)\r\n.after(startDate)\r\n.before(endDate)\r\n.types(types);\r\n\t\t\t\r\nEventLog eventLog = EventLog.getEnterpriseEvents(api, request);\r\n// EventLog size is 100\r\n\r\nI'm using version 2.58.0.\r\n\r\nRegards,\r\nEric",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 42912027,
+      "login": "eborisowIQVIA",
+      "type": "User",
+      "url": "https://api.github.com/users/eborisowIQVIA"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/976/comments",
+    "comment_count": 1,
+    "created_at": "2022-01-07T21:32:41Z",
+    "updated_at": "2022-01-10T14:02:26Z",
+    "closed_at": "2022-01-10T14:02:26Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ba0",
+    "id": 1084993312,
+    "number": 968,
+    "title": "Event Type EMAIL_ALIAS_ADD_UNCONFIRMED: Show in results as 'UNKNOWN'",
+    "body": "- [ x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x ] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nWhen requesting events from the Box Event Stream, I noticed that we had 'UNKNOWN' events. When querying those events via CLI it returns an event `EMAIL_ALIAS_ADD_UNCONFIRMED`. That event is not listed against the known event types in the SDK. See the Event JSON below:\r\n\r\n`[\r\n    {\r\n        \"source\": {\r\n            \"type\": \"user\",\r\n            \"id\": \"76xxxxx485\",\r\n            \"name\": \"Managed User 3\",\r\n            \"login\": \"jvaxxxx@xxxxxx.com\"\r\n        },\r\n        \"created_by\": {\r\n            \"type\": \"user\",\r\n            \"id\": \"33xxxxxx3\",\r\n            \"name\": \"Postmaster (Vertium)\",\r\n            \"login\": \"postmaster@xxxxx.com\"\r\n        },\r\n        \"action_by\": null,\r\n        \"created_at\": \"2021-11-29T09:55:40+00:00\",\r\n        \"event_id\": \"99ccef60-da75-47cb-a421-ed4a769be1da\",\r\n        \"event_type\": \"EMAIL_ALIAS_ADD_UNCONFIRMED\",\r\n        \"ip_address\": \"Unknown IP\",\r\n        \"type\": \"event\",\r\n        \"session_id\": null,\r\n        \"additional_details\": {\r\n            \"service_id\": \"5xxx6\",\r\n            \"service_name\": \"Box CLI - xxx\"\r\n        }\r\n    }\r\n]`\r\n\r\n\r\n\r\n### Steps to Reproduce\r\n\r\n\r\n### Expected Behavior\r\nEvent name should be listed\r\n\r\n### Error Message, Including Stack Trace\r\n\r\n\r\n### Screenshots\r\n\r\n\r\n### Versions Used\r\nJava SDK: 2.58.0\r\nJava: 11.0.1\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 23437040,
+      "login": "jacquesvandermerwe",
+      "type": "User",
+      "url": "https://api.github.com/users/jacquesvandermerwe"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/968/comments",
+    "comment_count": 3,
+    "created_at": "2021-12-20T16:40:37Z",
+    "updated_at": "2022-01-11T17:14:36Z",
+    "closed_at": "2022-01-11T17:14:35Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bc0",
+    "id": 1056090278,
+    "number": 936,
+    "title": "Box Folder Locks: Unable to unlock folders",
+    "body": "- [ x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nJava API is able to create a folder lock. But it isn't possible to unlock because it's using the wrong ID for the folder unlock operation. \r\n\r\nIn postman this sequence will work, but will fail in Java. See steps to reproduce.\r\n\r\n\r\n### Steps to Reproduce\r\nPostman steps\r\nStep 1: Create Lock\r\n```\r\ncurl --location --request POST 'https://api.box.com/2.0/folder_locks' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Authorization: Bearer <token>' \\\r\n--data-raw '{\r\n  \"locked_operations\": {\r\n    \"move\": true,\r\n    \"delete\": true\r\n  },\r\n  \"folder\": {\r\n    \"type\": \"folder\",\r\n    \"id\": \"150294091901\"\r\n  }\r\n}'\r\n```\r\nStep 2: Get the Lock ID:\r\n```\r\ncurl --location --request GET 'https://api.box.com/2.0/folder_locks?folder_id=150294091901' \\\r\n--header 'Authorization: Bearer <token>'\r\n```\r\n\r\nStep 3: Unlock\r\n```\r\ncurl --location --request DELETE 'https://api.box.com/2.0/folder_locks/<folder_lock_id>' \\\r\n--header 'Authorization: Bearer <token>'\r\n```\r\nWhat I can see in Java is it looks like the BoxFolderLock's unlock method uses the folder id and not the lock id, which results in a failure and 404. \r\n\r\nI saw the same failure behaviour in the CLI so it looks like it might be in the other SDK's as well.\r\n\r\n### Expected Behavior\r\nFolder to be unlocked as per Postman steps\r\n\r\n### Error Message, Including Stack Trace\r\n\r\n`com.box.sdk.BoxAPIResponseException: The API returned an error code [404 | hmlz20gwif3mjx9k.0c100ff270357a5bffd49877560b1dd7] not_found - Not Found`\r\n\r\n### Screenshots\r\n\r\n\r\n### Versions Used\r\nJava SDK: 2.57.0\r\nJava: 17.0.1\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 23437040,
+      "login": "jacquesvandermerwe",
+      "type": "User",
+      "url": "https://api.github.com/users/jacquesvandermerwe"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/936/comments",
+    "comment_count": 2,
+    "created_at": "2021-11-17T12:47:52Z",
+    "updated_at": "2021-11-17T15:05:24Z",
+    "closed_at": "2021-11-17T15:05:24Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bc5",
+    "id": 1037778422,
+    "number": 931,
+    "title": "Deprecated enums still being used",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nThe current version of BoxSDK has deprecated Type in BoxEvent.java but it is atleast being used in EventLog.java.\r\n\r\n\r\n### Screenshots\r\n<!-- If applicable, add screenshots to help explain your problem. -->\r\n\r\n### Versions Used\r\nJava SDK: 2.57.0\r\nJava: 11\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 46758864,
+      "login": "mittal-umang",
+      "type": "User",
+      "url": "https://api.github.com/users/mittal-umang"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/931/comments",
+    "comment_count": 1,
+    "created_at": "2021-10-27T19:18:53Z",
+    "updated_at": "2021-11-30T05:56:01Z",
+    "closed_at": "2021-11-30T05:56:01Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bd2",
+    "id": 995314976,
+    "number": 918,
+    "title": "NullPointerException on BoxFile.setMetadata() when template exists and new Metadata has no operations",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nNPE thrown at [BoxFile.setMetadata](https://github.com/box/box-java-sdk/blob/main/src/main/java/com/box/sdk/BoxFile.java#L1119) because [Metadata.getOperations()](https://github.com/box/box-java-sdk/blob/main/src/main/java/com/box/sdk/Metadata.java#L422) returns `null` if no operations have been added.\r\n\r\n### Steps to Reproduce\r\n1. Call `boxFile.setMetadata(\"existingTemplateKey\", \"scope\", new Metadata())`\r\n\r\n### Expected Behavior\r\nNPE should never be thrown.\r\n\r\n### Error Message, Including Stack Trace\r\nSee that `for (JsonValue value : metadata.getOperations())` will throw NPE when `metadata.getOperations()` returns null.\r\n\r\n### Versions Used\r\nJava 11\r\nopenjdk version \"11.0.11\" 2021-04-20 LTS\r\nOpenJDK Runtime Environment Zulu11.48+21-CA (build 11.0.11+9-LTS)\r\nOpenJDK 64-Bit Server VM Zulu11.48+21-CA (build 11.0.11+9-LTS, mixed mode)\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 7730787,
+      "login": "gsoulages",
+      "type": "User",
+      "url": "https://api.github.com/users/gsoulages"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/918/comments",
+    "comment_count": 0,
+    "created_at": "2021-09-13T20:50:49Z",
+    "updated_at": "2021-11-30T05:46:17Z",
+    "closed_at": "2021-11-30T05:46:17Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bd6",
+    "id": 986345357,
+    "number": 914,
+    "title": "Shared Links: Unable to set Vanity URL ",
+    "body": "- [ X] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ X] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ X] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ X] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nThe Java SDK does not allow you to set a vanity URL for a shared link. When you get the shared link information the vanity url will be included but there is not method for setting it. \r\n\r\n### Steps to Reproduce\r\nExecute the following CURL to set:\r\n```\r\ncurl --location --request PUT 'https://api.box.com/2.0/folders/<folder_id>?fields=shared_link' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Authorization: Bearer <token>' \\\r\n--data-raw '{\r\n    \"shared_link\": {\r\n        \"access\": \"open\",\r\n        \"password\": \"do-not-use-this-password\",\r\n\r\n        \"vanity_url\": \"https://<domain>.box.com/v/abcdefghijklmno\",\r\n        \"vanity_name\": \"abcdefghijklmno\",\r\n\r\n        \"permissions\": {\r\n            \"can_download\": true\r\n        }\r\n    }\r\n}'\r\n```\r\n\r\n### Expected Behavior\r\nShared link is created with a vanity url\r\n\r\n### Error Message, Including Stack Trace\r\nNA\r\n\r\n### Screenshots\r\n\r\n\r\n### Versions Used\r\nJava SDK: 2.55\r\nJava: AdoptJDK 11.0.11\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 23437040,
+      "login": "jacquesvandermerwe",
+      "type": "User",
+      "url": "https://api.github.com/users/jacquesvandermerwe"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/914/comments",
+    "comment_count": 1,
+    "created_at": "2021-09-02T08:14:05Z",
+    "updated_at": "2021-10-06T07:15:12Z",
+    "closed_at": "2021-10-06T07:15:12Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bd9",
+    "id": 978322119,
+    "number": 911,
+    "title": "BoxAPIConnection from Box SDK cause most threads in STUCK mode",
+    "body": "- [ x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nwe are using Box SDK for our Box integration for a while, our business noticed sometime they could not do any activity and it impact our business. After some research, we found all threads are stuck and it is caused by Box SDK api.\r\nWe filed the support ticket and here is the case number: 2460061\r\n\r\nIf you look at the thread dump we sent below, it happens when we try to interact with Box following actions:\r\nUpload\r\nGenerate download url\r\nGenerate preview url\r\n \r\nAnd it happens when Box Java SDK tries to refresh access token, and thread was locked, but never released. It happens very often. Thread count stuck and increases from 8:00AM.\r\nThe pod has filled up with stuck thread until we killed, or out of memory and won’t receive anymore request.\r\n \r\nIt’s one of the example. We have killed many stuck pods past months with the thread lock. \r\n \r\nHere are what we found out after researching on Box SDK code:\r\nAfter we looked at code, I think this could be potential problem:\r\nhttps://github.com/box/box-java-sdk/blob/v2.16.1/src/main/java/com/box/sdk/BoxAPIConnection.java#L545-L553\r\n \r\nLine 545 & line 551 could throw Throwable, if an exception is thrown, then refreshLock is remains locked. All threads trying to access Box become blocked on that lock.\r\n​\r\nThis portion of code should inside a try - finally statement and unlock should be inside of finally . so it would be unlocked.\r\n\r\nLine 540 could also cause this problem as well. you would need to swap Line 540 and Line 541.\r\n \r\nI looked at same class code from 2.55.1 and it would have same problem.\r\n \r\nPlease let us know if there could give you any clue of issue.\r\n \r\n### Steps to Reproduce\r\nIt is random and hard to reproduce it. Once it happen it would cause the server doesn't response as all threads are stuck\r\n\r\n### Expected Behavior\r\nit should not stuck any thread for this case.\r\n\r\n### Error Message, Including Stack Trace\r\nThe thread dump is attached\r\n\r\n### Screenshots\r\nPlease check the attachment\r\n[threaddump-xr52v-prod-202108230813.txt](https://github.com/box/box-java-sdk/files/7040885/threaddump-xr52v-prod-202108230813.txt)\r\n<img width=\"847\" alt=\"image001_thread\" src=\"https://user-images.githubusercontent.com/940782/130660526-abe783f0-3746-42d8-aa1b-5871f25f1d16.png\">\r\n\r\n### Versions Used\r\nJava SDK: 2.16.1 & 2.55.1\r\nJava: JDK 8\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 940782,
+      "login": "shuangli",
+      "type": "User",
+      "url": "https://api.github.com/users/shuangli"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/911/comments",
+    "comment_count": 8,
+    "created_at": "2021-08-24T17:22:25Z",
+    "updated_at": "2021-11-10T03:55:22Z",
+    "closed_at": "2021-11-10T03:55:22Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10be1",
+    "id": 943492129,
+    "number": 903,
+    "title": "BoxFileRequest is throwing com.box.sdk.BoxDeserializationException ",
+    "body": "- [X ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [X ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [X ] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ X] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nThe BoxFileRequest object is throwing BoxDeserializationException when trying to get the details of a File Request Link.\r\n\r\n### Steps to Reproduce\r\n    \tBoxFileRequest fileRequest = new BoxFileRequest(api, \"XXXX\");\r\n        BoxFileRequest.Info fileRequestInfo = fileRequest.getInfo();\r\n\r\n### Expected Behavior\r\nIt should return a valid BoxFileRequest object. The REST API returns a valid response\r\n\r\n### Error Message, Including Stack Trace\r\nException in thread \"main\" com.box.sdk.BoxDeserializationException: Deserialization failed on: [ \"field name\": url | \"field value\": \"/f/xxxxxxx\" ]\r\n\tat com.box.sdk.BoxFileRequest$Info.parseJSONMember(BoxFileRequest.java:420)\r\n\tat com.box.sdk.BoxJSONObject.update(BoxJSONObject.java:200)\r\n\tat com.box.sdk.BoxJSONObject.<init>(BoxJSONObject.java:57)\r\n\tat com.box.sdk.BoxResource$Info.<init>(BoxResource.java:185)\r\n\tat com.box.sdk.BoxFileRequest$Info.<init>(BoxFileRequest.java:171)\r\n\tat com.box.sdk.BoxFileRequest.getInfo(BoxFileRequest.java:45)\r\n\tat fr.App.getGreeting(App.java:39)\r\n\tat fr.App.main(App.java:44)\r\nCaused by: com.box.sdk.BoxAPIException: Couldn't parse url for file request\r\n\tat com.box.sdk.BoxFileRequest$Info.parseJSONMember(BoxFileRequest.java:416)\r\n\t... 7 more\r\nCaused by: java.net.MalformedURLException: no protocol: /f/xxxxxxx\r\n\tat java.net.URL.<init>(URL.java:593)\r\n\tat java.net.URL.<init>(URL.java:490)\r\n\tat java.net.URL.<init>(URL.java:439)\r\n\tat com.box.sdk.BoxFileRequest$Info.parseJSONMember(BoxFileRequest.java:414)\r\n\t... 7 more\r\n\r\n### Screenshots\r\nNA\r\n\r\n### Versions Used\r\nJava SDK: 2.54.0\r\nJava: 1.8.0_201\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 8515840,
+      "login": "rjainrohit",
+      "type": "User",
+      "url": "https://api.github.com/users/rjainrohit"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/903/comments",
+    "comment_count": 2,
+    "created_at": "2021-07-13T14:42:01Z",
+    "updated_at": "2021-08-06T09:04:26Z",
+    "closed_at": "2021-08-06T09:04:26Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10be3",
+    "id": 934194720,
+    "number": 901,
+    "title": "BoxUser.Info.getRole() isn't working",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nWhenever I try to get the role of a user, it gives an error without any sort of description. I contacted the Box team and they cannot find anything in their side and suggested it's a problem with the SDK.\r\n\r\n### Steps to Reproduce\r\nGet a Box user: BoxUser user  = new BoxUser(api, ID);\r\nGet the info: BoxUser.Info userInfo = user.getInfo();\r\nGet the role: BoxUser.Role role = userInfo.getRole();\r\n\r\n### Expected Behavior\r\nI expected the function to return the role of the user (\"user\", \"admin\", \"coadmin\").\r\n\r\n### Error Message, Including Stack Trace\r\nException in thread \"main\" java.lang.NullPointerException\r\n\tat boxusers.deleteBoxUsers.lookupUsers(deleteBoxUsers.java:172)\r\n\tat boxusers.deleteBoxUsers.main(deleteBoxUsers.java:302)\r\n\r\n### Screenshots\r\n![image](https://user-images.githubusercontent.com/52717894/124042086-61f28300-d9c5-11eb-9fdc-2028b414b9ad.png)\r\n\r\n\r\n### Versions Used\r\nJava SDK: box-java-sdk-2.48.0.jar\r\nJava: jre1.8.0_291\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 52717894,
+      "login": "adam801",
+      "type": "User",
+      "url": "https://api.github.com/users/adam801"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/901/comments",
+    "comment_count": 2,
+    "created_at": "2021-06-30T23:12:44Z",
+    "updated_at": "2021-07-07T20:14:36Z",
+    "closed_at": "2021-07-07T20:14:36Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10be9",
+    "id": 901259906,
+    "number": 895,
+    "title": "Missing Events from the BoxEvent.Type Enum",
+    "body": "- [ ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ ] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ ] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nThe following Event Types result in Unknown event name, as they are not in the BoxEvent.Type Enum:\r\n\r\n- FILE_VERSION_RESTORE\r\n- ADVANCED_FOLDER_SETTINGS_UPDATE\r\n- TASK_UPDATE\r\n\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 35776253,
+      "login": "pmatte1",
+      "type": "User",
+      "url": "https://api.github.com/users/pmatte1"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/895/comments",
+    "comment_count": 0,
+    "created_at": "2021-05-25T19:28:17Z",
+    "updated_at": "2021-07-09T09:45:45Z",
+    "closed_at": "2021-07-09T09:45:45Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bfe",
+    "id": 814789576,
+    "number": 874,
+    "title": "Specifying \"limit\" in folder.getChildren does not have any effect",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nRelated commit to this issue: #861\r\nMy code:\r\n\r\n            int assetsRead = 0;\r\n            for (BoxItem.Info itemInfo : boxFolder.getChildren(date, ASC,\r\n                    offset, limit, REQUIRED_FIELDS)) {\r\n                if (itemInfo instanceof BoxFile.Info) {\r\n                    // do something\r\n                } else if (itemInfo instanceof BoxFolder.Info) {\r\n                    // do something\r\n                }\r\n                assetsRead++;\r\n            }\r\nOutput: assetsRead > limit\r\n\r\nI set the limit to 1000. While crawling folders that have more than 3000 subfolders/files, the boxFolder.getChildren returns all the items in the folder instead of specified limit.\r\n\r\nPlease look into this issue as this is affecting our service.\r\n\r\nI did not find any documentation related to this feature in - https://github.com/box/box-java-sdk/blob/main/doc/folders.md#get-a-folders-items\r\n\r\n**Please don't close the issue until this is resolved.**",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 78834337,
+      "login": "Roshni661",
+      "type": "User",
+      "url": "https://api.github.com/users/Roshni661"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/874/comments",
+    "comment_count": 7,
+    "created_at": "2021-02-23T20:04:24Z",
+    "updated_at": "2021-05-10T07:12:19Z",
+    "closed_at": "2021-03-17T16:25:09Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10bff",
+    "id": 814742410,
+    "number": 873,
+    "title": "Specifying \"limit\" in folder.getChildren does not have any effect",
+    "body": "- [ ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ ] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ ] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nRelated commit to this issue: #861\r\nMy code:\r\n```\r\n\r\n            int assetsRead = 0;\r\n            for (BoxItem.Info itemInfo : boxFolder.getChildren(date, ASC,\r\n                    offset, limit, REQUIRED_FIELDS)) {\r\n                if (itemInfo instanceof BoxFile.Info) {\r\n                    // do something\r\n                } else if (itemInfo instanceof BoxFolder.Info) {\r\n                    // do something\r\n                }\r\n                assetsRead++;\r\n            }\r\n```\r\nOutput: assetsRead > limit\r\n\r\nI set the limit to 1000. While crawling folders that have more than 3000 subfolders/files, the boxFolder.getChildren returns all the items in the folder instead of specified limit.\r\n\r\nPlease look into this issue as this is affecting our service.\r\n\r\nCreating a new issue as #871 is not reopenable.\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 78834337,
+      "login": "Roshni661",
+      "type": "User",
+      "url": "https://api.github.com/users/Roshni661"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/873/comments",
+    "comment_count": 2,
+    "created_at": "2021-02-23T18:55:43Z",
+    "updated_at": "2021-02-23T18:59:15Z",
+    "closed_at": "2021-02-23T18:59:15Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c01",
+    "id": 812298247,
+    "number": 871,
+    "title": "Specifying \"limit\" in folder.getChildren does not have any effect",
+    "body": "- [Y ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ Y] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ Y] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [Y] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nRelated commit to this issue: https://github.com/box/box-java-sdk/pull/861\r\nMy code: \r\n```\r\n            int assetsRead = 0;\r\n            for (BoxItem.Info itemInfo : boxFolder.getChildren(date, ASC,\r\n                    offset, limit, REQUIRED_FIELDS)) {\r\n                if (itemInfo instanceof BoxFile.Info) {\r\n                    // do something\r\n                } else if (itemInfo instanceof BoxFolder.Info) {\r\n                    // do something\r\n                }\r\n                assetsRead++;\r\n            }\r\n```\r\nOutput: assetsRead > limit\r\n\r\nI set the limit to 1000. While crawling folders that have more than 3000 subfolders/files, the boxFolder.getChildren returns all the items in the folder instead of specified limit.\r\n\r\nPlease look into this issue as this is affecting our service.",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 78834337,
+      "login": "Roshni661",
+      "type": "User",
+      "url": "https://api.github.com/users/Roshni661"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/871/comments",
+    "comment_count": 4,
+    "created_at": "2021-02-19T20:02:12Z",
+    "updated_at": "2021-02-23T19:00:43Z",
+    "closed_at": "2021-02-23T17:25:04Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c0d",
+    "id": 747334785,
+    "number": 859,
+    "title": "bcprov-jdk15on dependency vulnerable",
+    "body": "### Description of the Issue\r\nThe version of the bcprov-jdk15on dependency has a vulnerability. Please update to latest version. As a workaround I've currently overruled the version of bcprov-jdk15on and bcpkix-jdk15on being used in my project.\r\nMore info: https://snyk.io/vuln/maven:org.bouncycastle:bcprov-jdk15on\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 8339355,
+      "login": "daanhorn",
+      "type": "User",
+      "url": "https://api.github.com/users/daanhorn"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/859/comments",
+    "comment_count": 2,
+    "created_at": "2020-11-20T09:35:17Z",
+    "updated_at": "2022-01-26T13:49:14Z",
+    "closed_at": "2022-01-26T13:49:14Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c17",
+    "id": 725540999,
+    "number": 849,
+    "title": "Box Java SDK , events log is empty !!!",
+    "body": "- [X] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [X] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [X] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [X] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nSuddenly, all enterprise events are empty when code is trying to get them (filtered by dates), if we don't filter, last event is on October 16 2020, while new files were uploaded since then.\r\nAll was working, until few days we noticed that enterprise events log is empty, and we know fo 100% that there's a new data.\r\nWe set \"As-User\" if this is done on behalf of another user (by admin)\r\n\r\n### Expected Behavior\r\nEnterprise events log should not be empty if there's a new data. \r\n\r\n### Error Message, Including Stack Trace\r\nNo error, no exception no stack trace.\r\n\r\n### Versions Used\r\nJava SDK: 2.32\r\nJava: 8 update 60\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n\r\nPlease advise, this is urgent as hurts production system.\r\nThanks",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 511540,
+      "login": "slavag",
+      "type": "User",
+      "url": "https://api.github.com/users/slavag"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/849/comments",
+    "comment_count": 3,
+    "created_at": "2020-10-20T12:36:21Z",
+    "updated_at": "2020-10-21T14:41:26Z",
+    "closed_at": "2020-10-21T14:41:26Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c1a",
+    "id": 718416327,
+    "number": 846,
+    "title": "Multiple issues with `setMetadata()`",
+    "body": "- [ x ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [ x ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ x ] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [ x ] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nThere are a couple issues with the `setMetadata()` method on BoxFile and BoxFolder.\r\n1. If a BoxAPIException  occurs with `createMetadata()`, and the response code is not 409, then it gets swallowed, when it should be rethrown.\r\n2. For the version of the Metadata.java constructor `public Metadata(JsonObject values)` , it does not update the internal state for the `operations` array with the passed-in values. So when such an object is passed to `setMetadata()`, it will fail with a null-pointer exception because `operations` is not initialized. The current workaround we're using is to construct with `public Metadata()` instead, and manually call `Metadata.add()` for each field. \r\n\r\n    The other version of constructor `public Metadata(Metadata other)` cannot be passed as-is to `setMetadata()` either because it contains the `$`-prefixed internal Metadata keys.\r\n\r\n    It would be much more convenient if these two Metadata constructors can be used for calls to `setMetadata()` without these workarounds. It would enable writing something simple like:\r\n\r\n    ```\r\n    Metadata md = folder.getMetadata();\r\n    subFolder.setMetadata(md);\r\n    ```\r\n\r\n    (And yes, we are forced to implement Cascading Metadata that Box should support because the feature is so flaky/does not work outright. I opened a Forum support request but no answers for two weeks https://support.box.com/hc/en-us/community/posts/360050248894-Metadata-Cascade-Policy-not-working).\r\n\r\n\r\n### Versions Used\r\nJava SDK: 2.50.1\r\nJava: 15\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 71866434,
+      "login": "brookexu",
+      "type": "User",
+      "url": "https://api.github.com/users/brookexu"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/846/comments",
+    "comment_count": 3,
+    "created_at": "2020-10-09T20:52:48Z",
+    "updated_at": "2022-03-01T11:47:38Z",
+    "closed_at": "2022-03-01T11:47:38Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c1b",
+    "id": 717448343,
+    "number": 845,
+    "title": "BoxZip create and download are returning a 401",
+    "body": "- [Y ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [Y ] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [ Y] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [Y ] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nI am using a code snippet like below to get a download URL using the new BoxZip item and it throws a 401 unauthorized exception - com.box.sdk.BoxAPIResponseException: The API returned an error code [401 | .06e21351cb691375825ca76a5ac93c4c5]\r\n\r\nList<BoxZipItem> items = new ArrayList<>();\r\n            BoxZipItem folder = new BoxZipItem(\"folder\", folderId);\r\n            items.add(folder);\r\n            BoxZip zip = new BoxZip(api);\r\n            BoxZipInfo zipInfo = zip.create(\"Awesome Zip File\", items);\r\n\r\n**Does the API account need any special privileges to make this call? The rest of the API functionality I use works fine.**\r\n\r\n### Steps to Reproduce\r\n\r\nSee code snippet above.\r\n\r\n### Expected Behavior\r\nzipInfo.getDownloadURL() should return a URL to download the folder as a zip.\r\n\r\n### Error Message, Including Stack Trace\r\ncom.box.sdk.BoxAPIResponseException: The API returned an error code [401 | .06e21351cb691375825ca76a5ac93c4c5]\r\n\tat com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:92)\r\n\tat com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:675)\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:381)\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:348)\r\n\tat com.box.sdk.BoxZip.create(BoxZip.java:56)\r\n\tat com.box.sdk.BoxZip.download(BoxZip.java:86)\r\n\tat com.box.sdk.BoxZip.download(BoxZip.java:72)\r\n\r\n### Screenshots\r\nN/A\r\n\r\n### Versions Used\r\nJava SDK: 2.50.1 & 2.50.0\r\nJava: JDK11\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 63790014,
+      "login": "llama-one",
+      "type": "User",
+      "url": "https://api.github.com/users/llama-one"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/845/comments",
+    "comment_count": 8,
+    "created_at": "2020-10-08T15:28:41Z",
+    "updated_at": "2020-10-09T22:28:25Z",
+    "closed_at": "2020-10-09T22:28:25Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c22",
+    "id": 695708975,
+    "number": 838,
+    "title": "BoxTrash does not support  pagination",
+    "body": "### Description of the Issue\r\nThere is now way to make pagination from trash folder by using BoxTrash (as we can do in BoxFolder). \r\n\r\n\r\n### Expected Behavior\r\nexpand BoxTrash class functional and make it close to BoxFolder\r\n\r\n\r\n### Versions Used\r\nJava SDK: <2.32.0.\r\nJava: <1.8.0_191>\r\n\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 45791635,
+      "login": "Deverlain",
+      "type": "User",
+      "url": "https://api.github.com/users/Deverlain"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/838/comments",
+    "comment_count": 1,
+    "created_at": "2020-09-08T09:25:38Z",
+    "updated_at": "2020-09-08T14:32:45Z",
+    "closed_at": "2020-09-08T14:32:45Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c2b",
+    "id": 663238425,
+    "number": 829,
+    "title": "Issue deserializing JSON object when using SpringFox with Jackson",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nI am currently working on building a middleware application between our ERP and Box. We wanted to use the SDK but are running into an issue. The current setup is using Swagger and SpringFox. When we attempt to return a JSON object, it appears Jackson is having an issue deserializing the object and giving us the following error:\r\n\r\n```java\r\n{\r\n  \"timestamp\": \"2020-07-21T18:53:48.574+0000\",\r\n  \"status\": 500,\r\n  \"error\": \"Internal Server Error\",\r\n  \"message\": \"Could not write JSON: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d]; nested exception is com.fasterxml.jackson.databind.JsonMappingException: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d] (through reference chain: com.box.sdk.BoxCollaboration$Info[\\\"createdBy\\\"]->com.box.sdk.BoxUser$Info[\\\"resource\\\"]->com.box.sdk.BoxUser[\\\"avatar\\\"])\",\r\n  \"trace\": \"org.springframework.http.converter.HttpMessageNotWritableException: Could not write JSON: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d]; nested exception is com.fasterxml.jackson.databind.JsonMappingException: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d] (through reference chain: com.box.sdk.BoxCollaboration$Info[\\\"createdBy\\\"]->com.box.sdk.BoxUser$Info[\\\"resource\\\"]->com.box.sdk.BoxUser[\\\"avatar\\\"])\\r\\n\\tat org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:326)\\r\\n\\tat org.springframework.http.converter.AbstractGenericHttpMessageConverter.write(AbstractGenericHttpMessageConverter.java:104)\\r\\n\\tat org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:287)\\r\\n\\tat org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.handleReturnValue(RequestResponseBodyMethodProcessor.java:181)\\r\\n\\tat org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:82)\\r\\n\\tat org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:123)\\r\\n\\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:879)\\r\\n\\tat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)\\r\\n\\tat org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)\\r\\n\\tat org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)\\r\\n\\tat org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)\\r\\n\\tat org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)\\r\\n\\tat org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)\\r\\n\\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:660)\\r\\n\\tat org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)\\r\\n\\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:741)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)\\r\\n\\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)\\r\\n\\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:109)\\r\\n\\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)\\r\\n\\tat org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)\\r\\n\\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)\\r\\n\\tat org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:202)\\r\\n\\tat org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96)\\r\\n\\tat org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:541)\\r\\n\\tat org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139)\\r\\n\\tat org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92)\\r\\n\\tat org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)\\r\\n\\tat org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)\\r\\n\\tat org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:373)\\r\\n\\tat org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65)\\r\\n\\tat org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:868)\\r\\n\\tat org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1590)\\r\\n\\tat org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)\\r\\n\\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)\\r\\n\\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:630)\\r\\n\\tat org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)\\r\\n\\tat java.base/java.lang.Thread.run(Thread.java:832)\\r\\nCaused by: com.fasterxml.jackson.databind.JsonMappingException: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d] (through reference chain: com.box.sdk.BoxCollaboration$Info[\\\"createdBy\\\"]->com.box.sdk.BoxUser$Info[\\\"resource\\\"]->com.box.sdk.BoxUser[\\\"avatar\\\"])\\r\\n\\tat com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:397)\\r\\n\\tat com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:356)\\r\\n\\tat com.fasterxml.jackson.databind.ser.std.StdSerializer.wrapAndThrow(StdSerializer.java:316)\\r\\n\\tat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:730)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:166)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:727)\\r\\n\\tat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:722)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:166)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:727)\\r\\n\\tat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:722)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:166)\\r\\n\\tat com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480)\\r\\n\\tat com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:319)\\r\\n\\tat com.fasterxml.jackson.databind.ObjectWriter$Prefetch.serialize(ObjectWriter.java:1433)\\r\\n\\tat com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:921)\\r\\n\\tat org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:317)\\r\\n\\t... 52 more\\r\\nCaused by: com.box.sdk.BoxAPIResponseException: The API returned an error code [404 | .038da827f44a95db6b57892565ac89f9d]\\r\\n\\tat com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:92)\\r\\n\\tat com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:581)\\r\\n\\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:354)\\r\\n\\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:329)\\r\\n\\tat com.box.sdk.BoxUser.getAvatar(BoxUser.java:511)\\r\\n\\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\\r\\n\\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\\r\\n\\tat java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\\r\\n\\tat java.base/java.lang.reflect.Method.invoke(Method.java:564)\\r\\n\\tat com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:688)\\r\\n\\tat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:722)\\r\\n\\t... 64 more\\r\\n\",\r\n  \"path\": \"/api/collaborations/116952186700/new\"\r\n}\r\n```\r\n\r\n### Classes\r\n**Controller**\r\n```java\r\npackage com.amteck.coinsbox.folder.rest;\r\n\r\nimport com.amteck.coinsbox.folder.models.Folder;\r\nimport com.amteck.coinsbox.folder.models.ItemsInFolder;\r\nimport com.amteck.coinsbox.folder.models.Parent;\r\nimport com.amteck.coinsbox.folder.service.FolderService;\r\nimport com.google.common.base.Strings;\r\nimport io.swagger.annotations.Api;\r\nimport io.swagger.annotations.ApiOperation;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.transaction.annotation.Transactional;\r\nimport org.springframework.web.bind.annotation.*;\r\n\r\nimport java.io.IOException;\r\n\r\n@Api(value = \"FolderController\")\r\n@RestController\r\n@RequestMapping(value = \"/api\")\r\npublic class FolderController {\r\n\r\n    @Autowired\r\n    private FolderService folderService;\r\n\r\n    @ApiOperation(value = \"Get List of Items in Folder\")\r\n    @GetMapping(value = \"/folders/{id}/items\")\r\n    public ItemsInFolder getItemsInFolder(@PathVariable(value = \"id\") String id) throws IOException {\r\n        if (Strings.isNullOrEmpty(id)) {\r\n            id = \"0\";\r\n        }\r\n        return this.folderService.getItemsInFolder(id);\r\n    }\r\n\r\n    @ApiOperation(value = \"Get Folder Information\")\r\n    @GetMapping(value = \"/folders/{id}\")\r\n    public Folder getFolderInfo(@PathVariable(value = \"id\") String id) throws IOException {\r\n        if (Strings.isNullOrEmpty(id)) {\r\n            id = \"0\";\r\n        }\r\n\r\n        return this.folderService.getFolderInfo(id);\r\n    }\r\n\r\n    @ApiOperation(value = \"Create Folder\")\r\n    @PostMapping(value = \"/folders\")\r\n    @Transactional\r\n    public Folder createFolder(@RequestBody Parent parent,\r\n                               @RequestParam(value = \"name\") String newFolderName) throws IOException {\r\n\r\n        return this.folderService.createFolder(newFolderName, parent);\r\n    }\r\n\r\n    @ApiOperation(value = \"Copy Folder\")\r\n    @PostMapping(value = \"/folders/{folder_id}/copy\")\r\n    @Transactional\r\n    public Folder copyFolder(@PathVariable(value = \"folder_id\") String folderId,\r\n                             @RequestBody String newFolderName,\r\n                             @RequestParam(value = \"parentId\", required = false) String parentId) throws IOException {\r\n\r\n        return this.folderService.copyFolder(folderId, newFolderName, parentId);\r\n    }\r\n\r\n    @ApiOperation(value = \"update or move Folder\")\r\n    @PutMapping(value = \"/folders/{folder_id}\")\r\n    @Transactional\r\n    public Folder updateFolder(@PathVariable(value = \"folder_id\") String folderId,\r\n                               @RequestParam(required = false) String newFolderName,\r\n                               @RequestParam(required = false) String parentDestinationId) throws IOException {\r\n\r\n        if (Strings.isNullOrEmpty(parentDestinationId)) {\r\n            return this.folderService.updateFolder(folderId, newFolderName);\r\n        } else {\r\n            return this.folderService.moveFolder(folderId, newFolderName, parentDestinationId);\r\n        }\r\n    }\r\n}\r\n```\r\n\r\n**Service**\r\n```java\r\npackage com.amteck.coinsbox.folder.service;\r\n\r\nimport com.amteck.coinsbox.authorization.service.AuthService;\r\nimport com.amteck.coinsbox.folder.business.EntryConverter;\r\nimport com.amteck.coinsbox.folder.business.FolderConverter;\r\nimport com.amteck.coinsbox.folder.models.*;\r\nimport com.box.sdk.*;\r\nimport com.google.common.base.Strings;\r\nimport org.slf4j.Logger;\r\nimport org.slf4j.LoggerFactory;\r\nimport org.springframework.context.annotation.ComponentScan;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport javax.inject.Inject;\r\nimport java.io.IOException;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\n@Service\r\n@ComponentScan(\"com/box/sdk/\")\r\npublic class FolderService extends BoxJSONObject {\r\n    private static final Logger LOG = LoggerFactory.getLogger(FolderService.class);\r\n\r\n    @Inject private AuthService authService;\r\n    @Inject private FolderConverter folderConverter;\r\n    @Inject private EntryConverter entryConverter;\r\n\r\n    public ItemsInFolder getItemsInFolder(String folderId) throws IOException {\r\n\r\n        BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n        BoxFolder folder = new BoxFolder(api, folderId);\r\n        Integer totalCount = 0;\r\n\r\n        ItemsInFolder itemsInFolderList = new ItemsInFolder();\r\n        List<Entry> entries = new ArrayList<>();\r\n\r\n        for (BoxItem.Info itemInfo : folder) {\r\n            if (itemInfo instanceof BoxFolder.Info) {\r\n                BoxFolder.Info folderInfo = (BoxFolder.Info) itemInfo;\r\n                entries.add(entryConverter.convert(folderInfo));\r\n                totalCount += 1;\r\n            }\r\n        }\r\n\r\n        itemsInFolderList.setEntries(entries);\r\n        itemsInFolderList.setTotalCount(totalCount);\r\n\r\n        return itemsInFolderList;\r\n    }\r\n\r\n    public Folder getFolderInfo(String folderId) throws IOException {\r\n        BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n\r\n        BoxFolder folder = new BoxFolder(api, folderId);\r\n        BoxFolder.Info info = folder.getInfo(\"id\", \"type\", \"created_by\", \"name\", \"owned_by\", \"parent\");\r\n\r\n        return folderConverter.convert(info);\r\n    }\r\n\r\n    public Folder createFolder(String newFolderName, Parent parent) throws IOException {\r\n        BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n        BoxFolder parentFolder = new BoxFolder(api, parent.getId());\r\n        BoxFolder.Info childFolderInfo = parentFolder.createFolder(newFolderName);\r\n\r\n        return folderConverter.convert(childFolderInfo);\r\n    }\r\n\r\n    public Folder copyFolder(String folderId, String newFolderName, String parentId) throws IOException {\r\n        if (folderId == null) {\r\n            throw new IllegalArgumentException(\"Parameter 'folderId' can not be null\");\r\n        }\r\n\r\n        BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n        BoxFolder folder = new BoxFolder(api, folderId);\r\n\r\n        String parent = \"\";\r\n\r\n        System.out.println(parentId);\r\n\r\n        if (Strings.isNullOrEmpty(parentId)) {\r\n            BoxFolder.Info parentFolderInfo = folder.getInfo().getParent();\r\n            BoxFolder parentFolder = parentFolderInfo.getResource();\r\n            parent = parentFolder.getID();\r\n        } else {\r\n            parent = parentId;\r\n        }\r\n\r\n        System.out.println(parent);\r\n\r\n        BoxFolder destination = new BoxFolder(api, parent);\r\n\r\n        if (!Strings.isNullOrEmpty(newFolderName)) {\r\n            folder.copy(destination, newFolderName);\r\n        } else {\r\n            folder.copy(destination);\r\n        }\r\n\r\n        return folderConverter.convert(folder.getInfo(\"id\", \"type\", \"created_by\", \"name\", \"owned_by\", \"parent\"));\r\n\r\n    }\r\n\r\n    public Folder updateFolder(String folderId, String newFolderName) throws IOException {\r\n        if (Strings.isNullOrEmpty(folderId)) {\r\n            throw new IllegalArgumentException(\"Parameter 'folderId' can not be null\");\r\n        }\r\n        BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n\r\n        BoxFolder folder = new BoxFolder(api, folderId);\r\n\r\n        BoxFolder.Info info = folder.new Info();\r\n        info.setName(newFolderName);\r\n        folder.updateInfo(info);\r\n        return folderConverter.convert(folder.getInfo(\"id\", \"type\", \"created_by\", \"name\", \"owned_by\", \"parent\"));\r\n\r\n    }\r\n\r\n    public Folder moveFolder(String folderId,\r\n                             String newFolderName,\r\n                             String destinationFolderId) throws IOException {\r\n        try {\r\n            BoxDeveloperEditionAPIConnection api = authService.requestAccessToken();\r\n            LOG.debug(\"Moving folder(id=\" + folderId + \") to destination_folder(id=\" + destinationFolderId + \")\"\r\n                    + (newFolderName == null ? \"\" : \" with new name '\" + newFolderName + \"'\"));\r\n            if (folderId == null) {\r\n                throw new IllegalArgumentException(\"Parameter 'folderId' can not be null\");\r\n            }\r\n            if (destinationFolderId == null) {\r\n                throw new IllegalArgumentException(\"Parameter 'destinationFolderId' can not be null\");\r\n            }\r\n            BoxFolder folderToMove = new BoxFolder(api, folderId);\r\n            BoxFolder destinationFolder = new BoxFolder(api, destinationFolderId);\r\n            BoxFolder folder;\r\n\r\n            if (newFolderName == null) {\r\n                folder = (BoxFolder) folderToMove.move(destinationFolder).getResource();\r\n            } else {\r\n                folder = (BoxFolder) folderToMove.move(destinationFolder, newFolderName).getResource();\r\n            }\r\n            return folderConverter.convert(folder.getInfo());\r\n        } catch (BoxAPIException e) {\r\n            throw new RuntimeException(\r\n                    String.format(\"Box API returned the error code %d\\n\\n%s\", e.getResponseCode(), e.getResponse()), e);\r\n        }\r\n    }\r\n}\r\n```\r\n\r\n\r\nAny help is greatly appreciated. We have been needing to build the JSON which is taking a lot of time and I think if we can get this issue fixed we can speed things up a bit.\r\n\r\n\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 166492,
+      "login": "logicsec",
+      "type": "User",
+      "url": "https://api.github.com/users/logicsec"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/829/comments",
+    "comment_count": 7,
+    "created_at": "2020-07-21T18:59:36Z",
+    "updated_at": "2020-08-27T17:53:08Z",
+    "closed_at": "2020-08-27T17:53:08Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c34",
+    "id": 646414381,
+    "number": 820,
+    "title": "BoxSharedLink it not correctly setting the \"unshareAt\" field",
+    "body": "- [yes] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [yes] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [yes] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported (or if it has been reported, I have attached a link to it, for reference).\r\n- [yes] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nBoxSharedLink it not correctly setting the \"unshareAt\" field, is using the Date class toString instead of BoxDateFormat  as it should.\r\n\r\n### Steps to Reproduce\r\n1. Try to create set a BoxSharedLink to a file or folder setting the unshareAt field with a Date in the future.\r\n2. Api returns a 400 showing that the unshareAt is incorrect.\r\n\r\n### Expected Behavior\r\nIt should work but it is impossible at this point to create a sharedlink with an unshareAt date.\r\n\r\n### Error Message, Including Stack Trace\r\nFINE: Request\r\nPUT https://api.box.com/2.0/files/683270578442\r\nAccept-Charset: utf-8\r\nX-Box-UA: agent=box-java-sdk/2.48.0; env=Java/14.0.1\r\nUser-Agent: Box Java SDK v2.48.0 (Java 14.0.1)\r\nAccept-Encoding: gzip\r\nContent-Type: application/json\r\n\r\n{\"shared_link\":{\"access\":\"open\",\"unshared_at\":\"Sat Jun 27 14:37:58 ART 2020\",\"password\":\"test\",\"permissions\":{\"can_preview\":true,\"can_download\":false}}}\r\nJun 26, 2020 2:37:59 PM sun.net.www.protocol.http.HttpURLConnection getInputStream0\r\nFINE: sun.net.www.MessageHeader@5513b7e68 pairs: {null: HTTP/1.1 400 Bad Request}{Date: Fri, 26 Jun 2020 17:37:59 GMT}{Content-Type: application/json}{Transfer-Encoding: chunked}{Connection: keep-alive}{Strict-Transport-Security: max-age=31536000}{Cache-Control: no-cache, no-store}{BOX-REQUEST-ID: 0b271817b3226140e8c1cfa335eaf5306}\r\nJun 26, 2020 2:37:59 PM com.box.sdk.BoxAPIResponse logResponse\r\nFINE: Response\r\nPUT https://api.box.com/2.0/files/683270578442\r\nHTTP/1.1 400 Bad Request\r\nTransfer-Encoding: chunked\r\nStrict-Transport-Security: max-age=31536000\r\nCache-Control: no-cache, no-store\r\nConnection: keep-alive\r\nBOX-REQUEST-ID: 0b271817b3226140e8c1cfa335eaf5306\r\nDate: Fri, 26 Jun 2020 17:37:59 GMT\r\nContent-Type: application/json\r\n\r\n{\"type\":\"error\",\"status\":400,\"code\":\"bad_request\",\"context_info\":{\"errors\":[{\"reason\":\"invalid_parameter\",\"name\":\"unshared_at\",\"message\":\"Invalid data type: 'false'\"}]},\"help_url\":\"http:\\/\\/developers.box.com\\/docs\\/#errors\",\"message\":\"Bad Request\",\"request_id\":\"1imhkagg67pfwym0\"}\r\n\r\n\r\n### Versions Used\r\nJava SDK: 2.48.0 but it's also present in older versions.\r\nJava: 14\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 2363127,
+      "login": "mmarmol",
+      "type": "User",
+      "url": "https://api.github.com/users/mmarmol"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/820/comments",
+    "comment_count": 3,
+    "created_at": "2020-06-26T17:40:02Z",
+    "updated_at": "2020-06-29T18:20:50Z",
+    "closed_at": "2020-06-29T18:20:50Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c41",
+    "id": 620335398,
+    "number": 807,
+    "title": "Collaboration: Get Accessible By Type not available in Java",
+    "body": "- [X ] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n\r\n\r\n### Description of the Issue\r\nIn Java when you get a folder's collaborations and you iterate over them, there isn't a method to give you the accessible by type e.g. user or group as per the JSON response. \r\n\r\nSample \r\n\r\n`Collection<BoxCollaboration.Info> collaborations = folder.getCollaborations();\r\ncollaborations.forEach(info -> {\r\nBoxCollaborator.Info collaborationInfoAccessibleBy = info.getAccessibleBy();\r\n// There is no method like collaborationInfoAccessibleBy.getType();\r\n}`\r\n\r\nJSON Response in CLI, under accessible by the type is listed\r\n\r\n```\r\nbox collaborations:get 24215463XXX --json\r\n{\r\n    \"type\": \"collaboration\",\r\n    \"id\": \"24215463XXX\",\r\n    \"created_by\": null,\r\n    \"created_at\": \"2020-05-18T06:11:03-07:00\",\r\n    \"modified_at\": \"2020-05-18T06:11:03-07:00\",\r\n    \"expires_at\": null,\r\n    \"status\": \"accepted\",\r\n    \"accessible_by\": {\r\n        \"type\": \"group\",\r\n        \"id\": \"4877585681\",\r\n        \"name\": \"Payslip Owners Group\",\r\n        \"group_type\": \"managed_group\"\r\n    },\r\n    \"invite_email\": null,\r\n    \"role\": \"editor\",\r\n    \"acknowledged_at\": \"2020-05-18T06:11:03-07:00\",\r\n    \"item\": {\r\n        \"type\": \"folder\",\r\n        \"id\": \"105527002859\",\r\n        \"sequence_id\": \"0\",\r\n        \"etag\": \"0\",\r\n        \"name\": \"Payslips 1970\"\r\n    }\r\n}\r\n```\r\n\r\nAt the moment the work around is to check\r\n`info.getAccessibleBy().getResource() instanceof BoxUser` which is cumbersome.\r\n\r\n### Versions Used\r\n2.46\r\n\r\n### Steps to Reproduce\r\nRun code above\r\n\r\n\r\n### Error Message, Including Stack Trace\r\nNot applicable\r\n[sdk-docs]: **https://opensource.box.com/box-java-sdk/javadoc/com/box/sdk/BoxCollaborator.Info.html**\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 23437040,
+      "login": "jacquesvandermerwe",
+      "type": "User",
+      "url": "https://api.github.com/users/jacquesvandermerwe"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/807/comments",
+    "comment_count": 2,
+    "created_at": "2020-05-18T16:12:37Z",
+    "updated_at": "2020-09-28T18:02:28Z",
+    "closed_at": "2020-09-28T16:45:46Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c43",
+    "id": 616702581,
+    "number": 805,
+    "title": "Calling isExternallyOwned() in BoxFolder.Info throws a NullPointerException",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported.\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\n### Description of the Issue\r\nAfter creating a new folder, when I call getIsExternallyOwned(), I get a NullPointerException. All other methods work fine. \r\n\r\n### Versions Used\r\nJava SDK: 1.8\r\nJava: 1.8\r\n\r\n### Steps to Reproduce\r\n<!-- Please include detailed steps to reproduce the issue you're seeing, if possible. -->\r\n<!-- If you don't have a reproducible error, please make sure that you give us as much detail -->\r\n<!-- as you can about what your application was doing when the error occurred. -->\r\n<!-- Good steps to reproduce the problem help speed up debugging for us and gets your issue resolved sooner! -->\r\n\r\n1. Instantiate a parent folder object\r\n2. Create a new folder and accept the returned object as type BoxFolder.Info\r\n3. Call getIsExternallyOwned()\r\n\r\n### Error Message, Including Stack Trace\r\njava.lang.NullPointerException: null\r\nat com.box.sdk.BoxFolder$Info.getIsExternallyOwned(BoxFolder.java:1392) ~[box-java-sdk-2.41.0.jar:na]\r\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_232]\r\nat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_232]\r\nat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_232]\r\nat java.lang.reflect.Method.invoke(Method.java:498) ~[na:1.8.0_232]\r\nat com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:688) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:719) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:155) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serializeContents(IndexedListSerializer.java:119) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serialize(IndexedListSerializer.java:79) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serialize(IndexedListSerializer.java:18) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:727) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:719) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:155) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:319) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ObjectMapper._configAndWriteValue(ObjectMapper.java:3905) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:3219) ~[jackson-databind-2.9.8.jar:2.9.8]\r\nat com.usaa.ent.ecsm.api.boxutility.BoxUtility.convertBoxObjectToJson(BoxUtility.java:12) ~[classes/:na]\r\nat com.usaa.ent.ecsm.api.folders.BoxFoldersServiceImpl.createFolder(BoxFoldersServiceImpl.java:29) ~[classes/:na]\r\nat com.usaa.ent.ecsm.api.folders.FoldersController.createFolder(FoldersController.java:64) ~[classes/:na]\r\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_232]\r\nat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_232]\r\nat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_232]\r\nat java.lang.reflect.Method.invoke(Method.java:498) ~[na:1.8.0_232]\r\nat org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:189) ~[spring-web-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138) ~[spring-web-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:102) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:892) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:797) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1038) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:942) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1005) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:908) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat javax.servlet.http.HttpServlet.service(HttpServlet.java:660) ~[tomcat-embed-core-9.0.17.jar:9.0.17]\r\nat org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:882) ~[spring-webmvc-5.1.6.RELEASE.jar:5.1.6.RELEASE]\r\nat javax.servlet.http.HttpServlet.service(HttpServlet.java:741) ~[tomcat-embed-core-9.0.17.jar:9.0.17]\r\nat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231) ~[tomcat-embed-core-9.0.17.jar:9.0.17]\r\nat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.17.jar:9.0.17]\r\nat org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-9.0.17.jar:9.0.17]\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n\r\nLink to box forum topic:\r\nhttps://community.box.com/t5/Platform-and-Development-Forum/NullPointerException-on-BoxFolder-Info-method-after-folder/td-p/83586",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 10627119,
+      "login": "DaBearsCodeMonkey",
+      "type": "User",
+      "url": "https://api.github.com/users/DaBearsCodeMonkey"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/805/comments",
+    "comment_count": 3,
+    "created_at": "2020-05-12T14:28:18Z",
+    "updated_at": "2020-05-19T17:07:13Z",
+    "closed_at": "2020-05-19T17:07:13Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10c44",
+    "id": 615046089,
+    "number": 804,
+    "title": " Couldn't connect to the Box API due to a network error in AccessAsAppUser.java.",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] doesn't solve my issue.\r\n- [x] I have checked that the [API documentation][api-docs] doesn't solve my issue.\r\n- [x] I have searched the [Box Developer Forums][dev-forums] and my issue isn't already reported.\r\n- [x] I have searched [Issues in this repo][github-repo] and my issue isn't already reported.\r\n\r\nPlease help me!\r\nI tried to run the userAccessAsAppUser in the proxy setup network environment and I got this error message. \r\n\r\nFirst I complete all the api setup and also all the setting in box setup. \r\nSecond I tried to run simple example runExample in same proxy network environment as   BoxAPIConnection as proxy setup. I was success to run the program.\r\n\r\nBut with same setting I tried to run userAccessAsAppUser, I go this error.\r\n\r\nAny one can please help the solution. \r\n\r\n### Description of the Issue\r\nWARNING: An illegal reflective access operation has occurred\r\nWARNING: Illegal reflective access by org.bouncycastle.jcajce.provider.drbg.DRBG\r\n (file:/C:/Users/clouduser/.gradle/caches/modules-2/files-2.1/org.bouncycastle/b\r\ncprov-jdk15on/1.60/bd47ad3bd14b8e82595c7adaa143501e60842a84/bcprov-jdk15on-1.60.\r\njar) to constructor sun.security.provider.Sun()\r\nWARNING: Please consider reporting this to the maintainers of org.bouncycastle.j\r\ncajce.provider.drbg.DRBG\r\nWARNING: Use --illegal-access=warn to enable warnings of further illegal reflect\r\nive access operations\r\nWARNING: All illegal access operations will be denied in a future release\r\nException in thread \"main\" com.box.sdk.BoxAPIException: Couldn't connect to the\r\nBox API due to a network error.\r\n        at com.box.sdk.BoxAPIRequest.writeBody(BoxAPIRequest.java:566)\r\n        at com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:643)\r\n        at com.box.sdk.BoxAPIRequest.sendWithoutRetry(BoxAPIRequest.java:326)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.authenticate(BoxDevelope\r\nrEditionAPIConnection.java:345)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.tryRestoreUsingAccessTok\r\nenCache(BoxDeveloperEditionAPIConnection.java:471)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.getAppUserConnection(Box\r\nDeveloperEditionAPIConnection.java:278)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.getAppUserConnection(Box\r\nDeveloperEditionAPIConnection.java:303)\r\n        at com.box.sdk.example.AccessAsAppUser.main(AccessAsAppUser.java:43)\r\nCaused by: java.net.UnknownHostException: api.box.com\r\n        at java.base/java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocke\r\ntImpl.java:220)\r\n        at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:403)\r\n        at java.base/java.net.Socket.connect(Socket.java:591)\r\n        at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:2\r\n85)\r\n        at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:177)\r\n        at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:474)\r\n\r\n        at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:569)\r\n\r\n        at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.j\r\nava:265)\r\n        at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java\r\n:372)\r\n        at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnecti\r\non.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)\r\n        at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(H\r\nttpURLConnection.java:1187)\r\n        at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(Ht\r\ntpURLConnection.java:1081)\r\n        at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnecti\r\non.connect(AbstractDelegateHttpsURLConnection.java:179)\r\n        at java.base/sun.net.www.protocol.http.HttpURLConnection.getOutputStream\r\n0(HttpURLConnection.java:1362)\r\n        at java.base/sun.net.www.protocol.http.HttpURLConnection.getOutputStream\r\n(HttpURLConnection.java:1337)\r\n        at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getOutput\r\nStream(HttpsURLConnectionImpl.java:247)\r\n        at com.box.sdk.BoxAPIRequest.writeBody(BoxAPIRequest.java:555)\r\n        ... 7 more\r\n\r\n> Task :runAccessAsAppUser FAILED\r\n\r\nFAILURE: Build failed with an exception.\r\n\r\n* What went wrong:\r\nExecution failed for task ':runAccessAsAppUser'.\r\n> Process 'command 'C:\\Program Files\\openjdk-12.0.2\\jdk-12.0.2\\bin\\java.exe'' fi\r\nnished with non-zero exit value 1\r\n\r\n* Try:\r\nRun with --stacktrace option to get the stack trace. Run with --info or --debug\r\noption to get more log output. Run with --scan to get full insights.\r\n\r\n* Get more help at https://help.gradle.org\r\n\r\nDeprecated Gradle features were used in this build, making it incompatible with\r\nGradle 7.0.\r\nUse '--warning-mode all' to show the individual deprecation warnings.\r\nSee https://docs.gradle.org/6.3/userguide/command_line_interface.html#sec:comman\r\nd_line_warnings\r\n\r\n### Versions Used\r\nJava SDK: 2.47.0\r\nJava: openjdk-12.0.2\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n[dev-forums]: https://community.box.com/t5/Platform-and-Development-Forum/bd-p/DeveloperForum\r\n[github-repo]: https://github.com/box/box-java-sdk/search?type=Issues\r\n\r\nThank you in advance!",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 6213118,
+      "login": "amitbatajoo",
+      "type": "User",
+      "url": "https://api.github.com/users/amitbatajoo"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/804/comments",
+    "comment_count": 4,
+    "created_at": "2020-05-09T00:07:18Z",
+    "updated_at": "2020-05-13T05:30:26Z",
+    "closed_at": "2020-05-13T05:30:25Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10cab",
+    "id": 441890624,
+    "number": 701,
+    "title": "Chunked Upload digest_mismatch Error",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] and [API documentation][api-docs] doesn't solve my issue\r\n\r\n### Description of the Issue\r\nI'm having an issue when I attempt to commit my session during a chunked upload session using the box-java-sdk with some of the chunked upload methods.\r\n\r\nI've created a chunked method that follows this doc:\r\nhttps://github.com/box/box-java-sdk/blob/master/doc/files.md#upload-a-large-file-in-chunks\r\n\r\nThe function works until I attempt to commit my session. I get an error 400 digest_mismatch - File digest was incorrect. Actual: I9YWC4PWLXwDLtBnskju3LXGIOw= Expected: 0z1JQ/aCu1KF9AwwYfYdoXuOk0M=\r\n\r\n``` java\r\nprivate BoxFile.Info chunkUploading(BoxAPIConnection api, InputStream fileData, String fileName, long fileLength, String boxId, boolean newVersion) throws Exception {\r\n\t\tlog.traceEntry(\"Entered chunking upload. api: {}, File: {}, box Id: {}, newVersion: {}\", api.toString(), fileName, boxId, newVersion);\r\n\t\tlong fileSize = fileLength;\r\n\t\tBoxFileUploadSession.Info sessionInfo;\r\n\t\t\r\n\t\tif (!newVersion) {\r\n\t\t\tBoxFolder rootFolder = new BoxFolder(api, boxId);\r\n\t\t\tsessionInfo = rootFolder.createUploadSession(fileName, fileSize);\r\n\t\t} else {\r\n\t\t\tBoxFile file = new BoxFile(api, boxId);\r\n\t\t\tsessionInfo = file.createUploadSession(fileSize);\r\n\t\t}\r\n\t\t\r\n\t\t// Get the session resource from the session info\r\n\t\tBoxFileUploadSession session = sessionInfo.getResource();\r\n\t\t\r\n\t\t// Create the Message Digest for the whole file\r\n\t\tMessageDigest digest = null;\r\n\t\ttry {\r\n\t\t\tdigest = MessageDigest.getInstance(\"SHA1\");\r\n\t\t} catch (NoSuchAlgorithmException ae) {\r\n\t\t\tthrow new BoxAPIException(\"Digest algorithm not found\", ae);\r\n\t\t}\r\n\t\r\n\t\t// Reading large file\r\n//\t\tFileInputStream fis = new FileInputStream(fileName);\r\n\t\t// Create the digest input stream to calculate the digest for the whole file.\r\n\t\tDigestInputStream dis = new DigestInputStream(fileData, digest);\r\n\t\t\r\n\t\tList<BoxFileUploadSessionPart> parts = new ArrayList<BoxFileUploadSessionPart>();\r\n\t\t\r\n\t\t// Get the part size. Each uploaded part should match the part size returned as part of the upload session.\r\n\t\t// The last part of the file can be less than part size if the remaining bytes of the last part is less than\r\n\t\t// the given part size\r\n\t\tlong partSize = sessionInfo.getPartSize();\r\n\t\tlog.debug(\"partsize1: {}\", partSize);\r\n\t\t// Start byte of the part;\r\n\t\tlong offset = 0;\r\n\t\t// Overall of bytes processed so far\r\n\t\tlong processed = 0;\r\n\t\twhile (processed < fileSize) {\r\n\t\t\tlong diff = fileSize - processed;\r\n\t\t\t// The size last part of the file can be less than the part size.\r\n\t\t\tif (diff < partSize) {\r\n\t\t\t\tpartSize = diff;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t// Upload a part. It can be uploaded async\r\n\t\t\tBoxFileUploadSessionPart part = session.uploadPart(dis, offset, (int)partSize, fileSize);\r\n\r\n\t\t\tparts.add(part);\r\n\t\t\t\r\n\r\n\t\t\tprocessed += partSize;\r\n\t\t\toffset += partSize;\r\n\t\t}\r\n\r\n\t\t// Create the file hash\r\n\t\tbyte[] digestBytes = digest.digest();\r\n\t\t// Base64 encoding of the hash\r\n\t\tString digestStr = Base64.getEncoder().encodeToString(digestBytes);\r\n\t\tlog.debug(\"digestStr: {}\", digestStr);\r\n\t\tdis.close();\r\n\t\t\r\n\t\t// Commit the upload session. If there is a failure, abort the commit.\r\n\t\tBoxFile.Info newFileInfo = session.commit(digestStr, parts, null, null, null);\r\n\t\treturn newFileInfo;\r\n\t}\r\n```\r\n\r\nI've also attempted to use the built in uploadLargeFile method and I get the same digest string I9YWC4PWLXwDLtBnskju3LXGIOw= as in my own \"custom\" method.\r\n``` java\r\nprivate BoxFile.Info chunkTest(BoxAPIConnection api, InputStream fileData, String fileName, long fileLength, String boxId, boolean newVersion) throws Exception {\r\n\t\tlog.traceEntry(\"testing built in chunking. api: {}, File: {}, size: {}, box Id: {}, newVersion: {}\", api.toString(), fileName, fileLength, boxId, newVersion);\r\n\t\tBoxFile.Info fileInfo;\r\n\t\tif (!newVersion) {\r\n\t\t\tBoxFolder rootFolder = new BoxFolder(api, boxId);\r\n\t\t\tfileInfo = rootFolder.uploadLargeFile(fileData, fileName, fileLength);\r\n\t\t} else {\r\n\t\t\tBoxFile file = new BoxFile(api, boxId);\r\n\t\t\tfileInfo = file.uploadLargeFile(fileData, fileLength);\r\n\t\t}\r\n\t\treturn fileInfo;\r\n\t}\r\n```\r\n\r\n### Versions Used\r\nJava SDK: 2.24.0\r\nJava: 1.8.0_144\r\n\r\n### Steps to Reproduce\r\nAttempt to upload a new file with a custom chunked upload or with the uploadLargeFile method.\r\n\r\n### Error Message, Including Stack Trace\r\n```\r\ncom.box.sdk.BoxAPIResponseException: The API returned an error code [400 | a39a1b4605b9a98f8725095987c97cc0] digest_mismatch - File digest was incorrect. Actual: I9YWC4PWLXwDLtBnskju3LXGIOw= Expected: 0z1JQ/aCu1KF9AwwYfYdoXuOk0M=\r\n\tat com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:92) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.box.sdk.BoxJSONResponse.<init>(BoxJSONResponse.java:32) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:579) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:354) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:329) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.box.sdk.BoxFileUploadSession.commit(BoxFileUploadSession.java:352) ~[box-java-sdk-2.32.0.jar:?]\r\n\tat com.adj.or.rest.BoxREST.chunkUploading(BoxREST.java:1202) ~[classes/:?]\r\n\tat com.adj.or.rest.BoxREST.uploadRequestFile(BoxREST.java:847) ~[classes/:?]\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_181]\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_181]\r\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_181]\r\n\tat java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_181]\r\n\tat com.sun.jersey.spi.container.JavaMethodInvokerFactory$1.invoke(JavaMethodInvokerFactory.java:60) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.model.method.dispatch.AbstractResourceMethodDispatchProvider$ObjectOutInvoker._dispatch(AbstractResourceMethodDispatchProvider.java:258) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.model.method.dispatch.ResourceJavaMethodDispatcher.dispatch(ResourceJavaMethodDispatcher.java:75) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.uri.rules.HttpMethodRule.accept(HttpMethodRule.java:302) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.uri.rules.RightHandPathRule.accept(RightHandPathRule.java:147) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.uri.rules.ResourceClassRule.accept(ResourceClassRule.java:108) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.uri.rules.RightHandPathRule.accept(RightHandPathRule.java:147) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.uri.rules.RootResourceClassesRule.accept(RootResourceClassesRule.java:84) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1542) ~[jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1473) [jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1419) [jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1409) [jersey-server-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.spi.container.servlet.WebComponent.service(WebComponent.java:409) [jersey-servlet-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:558) [jersey-servlet-1.19.4.jar:1.19.4]\r\n\tat com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:733) [jersey-servlet-1.19.4.jar:1.19.4]\r\n\tat javax.servlet.http.HttpServlet.service(HttpServlet.java:741) [servlet-api.jar:?]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) [catalina.jar:9.0.12]\r\n\tat org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) [tomcat-websocket.jar:9.0.12]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) [catalina.jar:9.0.12]\r\n\tat com.adj.or.rest.WebFilterREST.doFilter(WebFilterREST.java:68) [classes/:?]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) [catalina.jar:9.0.12]\r\n\tat org.apache.logging.log4j.web.Log4jServletFilter.doFilter(Log4jServletFilter.java:71) [log4j-web-2.10.0.jar:2.10.0]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:199) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:490) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:668) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) [catalina.jar:9.0.12]\r\n\tat org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343) [catalina.jar:9.0.12]\r\n\tat org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:408) [tomcat-coyote.jar:9.0.12]\r\n\tat org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66) [tomcat-coyote.jar:9.0.12]\r\n\tat org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:770) [tomcat-coyote.jar:9.0.12]\r\n\tat org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1415) [tomcat-coyote.jar:9.0.12]\r\n\tat org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49) [tomcat-coyote.jar:9.0.12]\r\n\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_181]\r\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_181]\r\n\tat org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-util.jar:9.0.12]\r\n\tat java.lang.Thread.run(Thread.java:748) [?:1.8.0_181]\r\n```\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 17636707,
+      "login": "qrdean",
+      "type": "User",
+      "url": "https://api.github.com/users/qrdean"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/701/comments",
+    "comment_count": 11,
+    "created_at": "2019-05-08T19:20:17Z",
+    "updated_at": "2019-07-18T05:07:54Z",
+    "closed_at": "2019-06-09T02:50:37Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d2e",
+    "id": 303620524,
+    "number": 569,
+    "title": "Getting canViewPath parameter for collabs always returns false",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] and [API documentation][api-docs] doesn't solve my issue\r\n\r\n### Description of the Issue\r\nHey guys! Writing in on behalf of a Japanese customer, while I don't have a Java test environment myself so apologies in advance for any Java faux pas. \r\n\r\nIn response to https://github.com/box/box-java-sdk/pull/560, it looks like getCanViewPath \r\nIt always returns \"false\" even though the actual value should be \"true\". \r\nIt seems that the value of canViewPath can only be retrieved/returned when it is *set*, but can't be *get*'d. Instead, the value always seems to return false. \r\n\r\n### Versions Used\r\nJava SDK: Version is 2.14.0\r\nJava: // Replace with the version of Java your application is running on.\r\n\r\n### Steps to Reproduce\r\n-----Summary------ \r\n//invite the target user to the target folder (canviewpath=true) \r\nString trueCollaboId = folder.collaborate(user, \r\nBoxCollaboration.Role.EDITOR, false, true).getID(); \r\nSystem.out.println(trueCollaboId); //Result:13114521128\r\n\r\n//Get information of above collaboration. Even though canViewPath is \r\ntrue, result is always false. \r\nBoxCollaboration trueCollabo = new BoxCollaboration(api, trueCollaboId); \r\nBoxCollaboration.Info trueCollaboInfo = trueCollabo.getInfo(); \r\nSystem.out.println(trueCollaboInfo.getCanViewPath()); //Result:false \r\nSystem.out.println(trueCollaboInfo.getRole()); //Result:EDITOR \r\nSystem.out.println(trueCollaboInfo.getStatus()); //Result:ACCEPTED \r\n-----Summary------\r\n\r\n-----Details------ \r\nVersion is 2.14.0\r\n\r\n//Enter box credential (Let me skip details about the credential here) \r\nBoxAPIConnection api; \r\n//Target folder \r\nBoxFolder folder = new BoxFolder(api, \"__removed__\"); \r\n//Target user \r\nBoxUser user = new BoxUser(api, \"__removed__\");\r\n\r\n/** canviewpath=true **/ \r\n//invite the target user to the target folder (canviewpath=true) \r\nString trueCollaboId = folder.collaborate(user, \r\nBoxCollaboration.Role.EDITOR, false, true).getID(); \r\nSystem.out.println(trueCollaboId); //Result: collab_id value\r\n\r\n//Get information of above collaboration. Even though canViewPath is \r\ntrue, result is always false. \r\nBoxCollaboration trueCollabo = new BoxCollaboration(api, trueCollaboId); \r\nBoxCollaboration.Info trueCollaboInfo = trueCollabo.getInfo(); \r\nSystem.out.println(trueCollaboInfo.getCanViewPath()); //Result:false \r\nSystem.out.println(trueCollaboInfo.getRole()); //Result:EDITOR \r\nSystem.out.println(trueCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Set canviewpath=true via setCanViewPath, then call getCanViewPath, it \r\nreturns true. \r\ntrueCollaboInfo.setRole(BoxCollaboration.Role.VIEWER); \r\ntrueCollaboInfo.setCanViewPath(true); \r\nSystem.out.println(trueCollaboInfo.getCanViewPath()); //Result:true \r\nSystem.out.println(trueCollaboInfo.getRole()); //Result:VIEWER \r\nSystem.out.println(trueCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Do the updateInfo to make sure \r\ntrueCollabo.updateInfo(trueCollaboInfo); \r\nSystem.out.println(trueCollaboInfo.getCanViewPath()); //Result:true \r\nSystem.out.println(trueCollaboInfo.getRole()); //Result:VIEWER \r\nSystem.out.println(trueCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Get it as a different object, it returns false even though the actual \r\nvalue is true \r\nBoxCollaboration trueCollabo2 = new BoxCollaboration(api, trueCollaboId); \r\nBoxCollaboration.Info trueCollaboInfo2 = trueCollabo2.getInfo(); \r\nSystem.out.println(trueCollaboInfo2.getCanViewPath()); //Result:false \r\nSystem.out.println(trueCollaboInfo2.getRole()); //Result:VIEWER \r\nSystem.out.println(trueCollaboInfo2.getStatus()); //Result:ACCEPTED\r\n\r\n/** canviewpath=false**/ \r\n// Delete the collaboration first \r\ntrueCollabo.delete(); \r\n// invite the target user to the target folder (canviewpath=false) \r\nString falseCollaboId = folder.collaborate(user, \r\nBoxCollaboration.Role.EDITOR, false, false).getID(); \r\nSystem.out.println(falseCollaboId); //Result:13114516801\r\n\r\n// Get information of above collaboration. Result is false and that is \r\nexpected. \r\nBoxCollaboration falseCollabo = new BoxCollaboration(api, falseCollaboId); \r\nBoxCollaboration.Info falseCollaboInfo = falseCollabo.getInfo(); \r\nSystem.out.println(falseCollaboInfo.getCanViewPath()); //Result:false \r\nSystem.out.println(falseCollaboInfo.getRole()); //Result:EDITOR \r\nSystem.out.println(falseCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Call setCanViewPath to set canviewpath=true \r\nfalseCollaboInfo.setRole(BoxCollaboration.Role.VIEWER); \r\nfalseCollaboInfo.setCanViewPath(true); \r\nSystem.out.println(falseCollaboInfo.getCanViewPath()); //Result:true \r\nSystem.out.println(falseCollaboInfo.getRole()); //Result:VIEWER \r\nSystem.out.println(falseCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Do the updateInfo to make sure \r\nfalseCollabo.updateInfo(falseCollaboInfo); \r\nSystem.out.println(falseCollaboInfo.getCanViewPath()); //Result:true \r\nSystem.out.println(falseCollaboInfo.getRole()); //Result:VIEWER \r\nSystem.out.println(falseCollaboInfo.getStatus()); //Result:ACCEPTED\r\n\r\n// Get it as a different object, it returns false even though the actual \r\nvalue is true \r\nBoxCollaboration falseCollabo2 = new BoxCollaboration(api, falseCollaboId); \r\nBoxCollaboration.Info falseCollaboInfo2 = falseCollabo2.getInfo(); \r\nSystem.out.println(falseCollaboInfo2.getCanViewPath()); //Result:false \r\nSystem.out.println(falseCollaboInfo2.getRole()); //Result:VIEWER \r\nSystem.out.println(falseCollaboInfo2.getStatus()); //Result:ACCEPTED \r\n-----Details----\r\n\r\n### Error Message, Including Stack Trace\r\nEhh... just the above?\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 18650238,
+      "login": "jasonpan12",
+      "type": "User",
+      "url": "https://api.github.com/users/jasonpan12"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/569/comments",
+    "comment_count": 2,
+    "created_at": "2018-03-08T20:28:59Z",
+    "updated_at": "2018-05-01T17:30:32Z",
+    "closed_at": "2018-03-12T21:06:59Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d39",
+    "id": 297188480,
+    "number": 558,
+    "title": "canViewPath cannot be unset on existing collabs",
+    "body": "- [x] I have checked that the [SDK documentation][sdk-docs] and [API documentation][api-docs] doesn't solve my issue\r\n\r\n### Description of the Issue\r\nThe canViewPath parameter of collaborations can be set for a new collaboration, but not view or modify the parameter after that. There appears to not be a canViewPath variable in the collaboration:\r\nhttps://github.com/box/box-java-sdk/blob/master/src/main/java/com/box/sdk/BoxCollaboration.java#L169\r\n\r\n### Versions Used\r\nJava SDK: 2.4.0\r\n\r\n### Steps to Reproduce\r\nCreate a collaboration like so:\r\ncollaborate(BoxCollaborator collaborator, BoxCollaboration.Role role, Boolean notify, Boolean canViewPath)\r\n\r\ncmd+f for canViewPath on [this page](http://opensource.box.com/box-java-sdk/javadoc/com/box/sdk/BoxFolder.html)\r\n\r\nI'm not sure what happens if that is set to false or not - customer reported (I'm a boxer) and wanted to make this for due diligence per our internal convos :)\r\n\r\n### Error Message, Including Stack Trace\r\nNo errors, I think the issue is just that the functionality isn't there?\r\n\r\n[sdk-docs]: ./doc\r\n[api-docs]: https://developer.box.com/docs",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 18650238,
+      "login": "jasonpan12",
+      "type": "User",
+      "url": "https://api.github.com/users/jasonpan12"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/558/comments",
+    "comment_count": 1,
+    "created_at": "2018-02-14T17:52:51Z",
+    "updated_at": "2018-05-01T17:29:17Z",
+    "closed_at": "2018-02-15T17:30:01Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d85",
+    "id": 273853366,
+    "number": 482,
+    "title": "Running on JDK 1.6: UnsupportedClassVersionError: org/jose4j/lang/JoseException : Unsupported major.minor",
+    "body": "The sourceCompatibility = 1.6, however there seems to be an issue with the jose4J dependency when running on JDK 1.6.\r\n\r\n```\r\njava.lang.UnsupportedClassVersionError: org/jose4j/lang/JoseException : Unsupported major.minor version 51.0 (unable to load class org.jose4j.lang.JoseException)\r\n        at org.apache.catalina.loader.WebappClassLoader.findClassInternal(WebappClassLoader.java:2726)\r\n        at org.apache.catalina.loader.WebappClassLoader.findClass(WebappClassLoader.java:1124)\r\n        at org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1612)\r\n        at org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1491)\r\n        at com.ssc.box.BoxUtility.getBoxConnection(Unknown Source)\r\n        at com.ssc.cdt.box.BoxUtil.<init>(BoxUtil.java:52)\r\n        at com.ssc.cdt.mq.MSGHandler.handleMessage(MSGHandler.java:195)\r\n        at com.ssc.brm.common.email.mq.handler.BaseHandler.handleMQMessage(BaseHandler.java:22)\r\n        at com.ssc.bpms.utils.ibmmq.QueueListener.run(QueueListener.java:132)\r\n```",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 1852451,
+      "login": "kylefernandadams",
+      "type": "User",
+      "url": "https://api.github.com/users/kylefernandadams"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/482/comments",
+    "comment_count": 2,
+    "created_at": "2017-11-14T16:20:51Z",
+    "updated_at": "2018-01-31T00:40:10Z",
+    "closed_at": "2018-01-31T00:40:10Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d8c",
+    "id": 265780881,
+    "number": 475,
+    "title": "Started getting api status 400 error suddenly - `Please check the 'jti' claim.`",
+    "body": "We are on \r\n\r\n`com.box:box-java-sdk:2.4.0`\r\n\r\nWe have CI servers that run some very small tests that use integration tests that utilize read-only Box.com. This CI box test, after working for a long time with no problems, suddenly started giving us this error:\r\n\r\n`{error:invalid_grant,error_description: Please check the 'jti' claim.}`\r\n\r\nWhat might this be?",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 2238777,
+      "login": "nddipiazza",
+      "type": "User",
+      "url": "https://api.github.com/users/nddipiazza"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/475/comments",
+    "comment_count": 3,
+    "created_at": "2017-10-16T14:00:59Z",
+    "updated_at": "2018-01-23T02:29:49Z",
+    "closed_at": "2018-01-23T02:29:49Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d92",
+    "id": 259084990,
+    "number": 469,
+    "title": "Why addEmailAlias does not take in input is_confirmed parameter?",
+    "body": "Hi,\r\n\r\nin order to add an email alias, domain should be allowed into enterprise settings.\r\nBut to bypass this check `email_aliases` endpoint provides also an `is_confirmed` parameter.\r\nI'm referring to [this forum thread](https://community.box.com/t5/Box-Developer-Forum/Add-Email-Alias-API-returns-bad-request/td-p/19822).\r\n\r\nWhy there isn't such parameter into [addEmailAlias](https://github.com/box/box-java-sdk/blob/v2.8.1/src/main/java/com/box/sdk/BoxUser.java#L339) method?\r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 3763111,
+      "login": "andrea-patricelli",
+      "type": "User",
+      "url": "https://api.github.com/users/andrea-patricelli"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/469/comments",
+    "comment_count": 0,
+    "created_at": "2017-09-20T08:41:08Z",
+    "updated_at": "2018-01-11T21:50:23Z",
+    "closed_at": "2018-01-11T21:50:23Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10d9f",
+    "id": 244261122,
+    "number": 456,
+    "title": "Error# 400: Password reset required.",
+    "body": "Hi Team, \r\n\r\nAm getting the below error when trying to create new App user,\r\n\r\ngradle runCreateAppUser\r\n\r\n> Task :runCreateAppUser\r\nSLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\r\nSLF4J: Defaulting to no-operation (NOP) logger implementation\r\nSLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\r\nException in thread \"main\" com.box.sdk.BoxAPIException: The API returned an error code: 400\r\n{\"error\":\"password_reset_required\",\"error_description\":\"User needs to reset password\"}\r\n        at com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:70)\r\n        at com.box.sdk.BoxJSONResponse.<init>(BoxJSONResponse.java:30)\r\n        at com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:441)\r\n        at com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:227)\r\n        at com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:202)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.authenticate(BoxDeveloperEditionAPIConnection.java:308)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.tryRestoreUsingAccessTokenCache(BoxDeveloperEditionAPIConnection.java:368)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(BoxDeveloperEditionAPIConnection.java:179)\r\n        at com.box.sdk.BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(BoxDeveloperEditionAPIConnection.java:206)\r\n        at com.box.sdk.example.CreateAppUser.main(CreateAppUser.java:38)",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 25175263,
+      "login": "Narmu89",
+      "type": "User",
+      "url": "https://api.github.com/users/Narmu89"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/456/comments",
+    "comment_count": 1,
+    "created_at": "2017-07-20T06:47:12Z",
+    "updated_at": "2018-01-22T21:26:22Z",
+    "closed_at": "2018-01-22T21:26:22Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10dd6",
+    "id": 214107575,
+    "number": 401,
+    "title": "Error 400 while assigning number to field has type \"float\" use enterprise template metadata",
+    "body": "` MetadataTemplate.Field titleField = new MetadataTemplate.Field();\r\n        titleField.setType(\"string\");\r\n        titleField.setKey(\"title\");\r\n        titleField.setDisplayName(\"title\");\r\n\r\n        MetadataTemplate.Field authorField = new MetadataTemplate.Field();\r\n        authorField.setType(\"string\");\r\n        authorField.setKey(\"author\");\r\n        authorField.setDisplayName(\"Author\");\r\n\r\n        MetadataTemplate.Field subjectField = new MetadataTemplate.Field();\r\n        subjectField.setType(\"string\");\r\n        subjectField.setKey(\"subject\");\r\n        subjectField.setDisplayName(\"Subject\");\r\n\r\n        MetadataTemplate.Field amountField = new MetadataTemplate.Field();\r\n        amountField.setType(\"float\");\r\n        amountField.setKey(\"amount\");\r\n        amountField.setDisplayName(\"Amount\");\r\n\r\n        MetadataTemplate.Field publishDateField = new MetadataTemplate.Field();\r\n        publishDateField.setType(\"date\");\r\n        publishDateField.setKey(\"publishDate\");\r\n        publishDateField.setDisplayName(\"Amount\");\r\n\r\n        MetadataTemplate.Field categoryField = new MetadataTemplate.Field();\r\n        categoryField.setType(\"enum\");\r\n        categoryField.setKey(\"category\");\r\n        categoryField.setDisplayName(\"Category\");\r\n        List<String> options = new ArrayList<String>();\r\n        options.add(\"novel\");\r\n        options.add(\"comics\");\r\n        options.add(\"science\");\r\n        options.add(\"education\");\r\n        categoryField.setOptions(options);\r\n\r\n        List<MetadataTemplate.Field> fields = new ArrayList<MetadataTemplate.Field>();\r\n        fields.add(titleField);\r\n        fields.add(authorField);\r\n        fields.add(subjectField);\r\n        fields.add(amountField);\r\n        fields.add(publishDateField);\r\n        fields.add(categoryField);\r\n\r\n\r\n        try {\r\n            MetadataTemplate template = MetadataTemplate.createMetadataTemplate(api, \"enterprise\",\r\n                \"TemplateTest\", \"Template Test\", false, fields);\r\n\r\n        } catch (BoxAPIException apiEx) {\r\n            //Delete MetadataTemplate is yet to be supported. Due to that template might be existing already.\r\n            //This expects the conflict error.\r\n            Assert.assertEquals(apiEx.getResponseCode(), 409);\r\n            Assert.assertTrue(apiEx.getResponse().contains(\"Template key already exists in this scope\"));\r\n        }\r\n\r\n        MetadataTemplate storedTemplate = MetadataTemplate.getMetadataTemplate(api, \"documentFlow03\");\r\n\r\n        Assert.assertNotNull(storedTemplate);\r\n        final JsonObject jsonObject = new JsonObject();\r\n        jsonObject.add(\"/title\", \"title\");\r\n        jsonObject.add(\"/author\", \"author\");\r\n ###        jsonObject.add(\"/amount\", 10);\r\n        Metadata customerMetaData = new Metadata(jsonObject);\r\n        uploadedFile.createMetadata(\"TemplateTest\", customerMetaData);`\r\n\r\n`\r\n\r\ncom.box.sdk.BoxAPIException: The API returned an error code: 400\r\n\r\n\tat com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:70)\r\n\tat com.box.sdk.BoxJSONResponse.<init>(BoxJSONResponse.java:30)\r\n\tat com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:423)\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:209)\r\n\tat com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:184)\r\n\tat com.box.sdk.BoxFile.createMetadata(BoxFile.java:664)\r\n\tat com.box.sdk.BoxFile.createMetadata(BoxFile.java:649)\r\n\tat com.box.sdk.BoxFileTest.getAllMetadataSucceeds(BoxFileTest.java:1017)\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\r\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\r\n\tat java.lang.reflect.Method.invoke(Method.java:498)\r\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)\r\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)\r\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)\r\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)\r\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)\r\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)\r\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)\r\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)\r\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)\r\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)\r\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)\r\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)\r\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:309)\r\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:160)\r\n\tat com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)\r\n\tat com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:51)\r\n\tat com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:237)\r\n\tat com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\r\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\r\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\r\n\tat java.lang.reflect.Method.invoke(Method.java:498)\r\n\tat com.intellij.rt.execution.application.AppMain.main(AppMain.java:147)\r\n\r\n\r\nProcess finished with exit code 255\r\n`",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 2314216,
+      "login": "thoangtd",
+      "type": "User",
+      "url": "https://api.github.com/users/thoangtd"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/401/comments",
+    "comment_count": 3,
+    "created_at": "2017-03-14T15:22:17Z",
+    "updated_at": "2018-01-05T19:00:12Z",
+    "closed_at": "2018-01-05T19:00:12Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10dec",
+    "id": 196396811,
+    "number": 379,
+    "title": "BoxAPIException when trying upload file version",
+    "body": "Library version 2.1.1 got as Maven dependency.\r\n\r\nCode snippet like this: \r\n\r\n```java\r\nString fileName = \"myFile\";\r\nFile file = new File(fileName);  \r\nFileInputStream stream = new FileInputStream(file);\r\nString folderName = \"myFolder\";\r\nBoxFile boxFile = getFileFromFolder(folderName, fileName); \r\nif(boxFile !=null){\r\n    boxFile.uploadVersion(inputStream);\r\n}\r\n```\r\n \r\nBoxAPIException is thrown, but BOX file successfully updated with new version.\r\n\r\nException in trace:\r\n\r\n```\r\ncom.box.sdk.BoxAPIException: Couldn't finish closing the connection to the Box API due to a network error or because the stream was already closed. at com.box.sdk.BoxAPIResponse.disconnect(BoxAPIResponse.java:159) at com.box.sdk.BoxFile.uploadVersion(BoxFile.java:471) at com.box.sdk.BoxFile.uploadVersion(BoxFile.java:440) at com.box.sdk.BoxFile.uploadVersion(BoxFile.java:430) at com.mstack.dig.store.box.Box.uploadData(Box.java:102) at com.mstack.dig.service.UploadServiceImpl.uploadFiles(UploadServiceImpl.java:41) at com.mstack.dig.controller.UploadController.uploadIndices(UploadController.java:39) at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) at java.lang.reflect.Method.invoke(Method.java:498) at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221) at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136) at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:110) at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:817) at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:731) at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85) at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:959) at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:893) at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:968) at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:870) at javax.servlet.http.HttpServlet.service(HttpServlet.java:727) at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:844) at javax.servlet.http.HttpServlet.service(HttpServlet.java:820) at org.mortbay.jetty.servlet.ServletHolder.handle(ServletHolder.java:511) at org.mortbay.jetty.servlet.ServletHandler.handle(ServletHandler.java:390) at org.mortbay.jetty.security.SecurityHandler.handle(SecurityHandler.java:216) at org.mortbay.jetty.servlet.SessionHandler.handle(SessionHandler.java:182) at org.mortbay.jetty.handler.ContextHandler.handle(ContextHandler.java:765) at org.mortbay.jetty.webapp.WebAppContext.handle(WebAppContext.java:440) at org.mortbay.jetty.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:230) at org.mortbay.jetty.handler.HandlerCollection.handle(HandlerCollection.java:114) at org.mortbay.jetty.handler.HandlerWrapper.handle(HandlerWrapper.java:152) at org.mortbay.jetty.Server.handle(Server.java:326) at org.mortbay.jetty.HttpConnection.handleRequest(HttpConnection.java:542) at org.mortbay.jetty.HttpConnection$RequestHandler.content(HttpConnection.java:943) at org.mortbay.jetty.HttpParser.parseNext(HttpParser.java:756) at org.mortbay.jetty.HttpParser.parseAvailable(HttpParser.java:212) at org.mortbay.jetty.HttpConnection.handle(HttpConnection.java:404) at org.mortbay.io.nio.SelectChannelEndPoint.run(SelectChannelEndPoint.java:410) at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:582) Caused by: java.io.IOException: stream is closed at sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.ensureOpen(HttpURLConnection.java:3309) at sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read(HttpURLConnection.java:3334) at sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read(HttpURLConnection.java:3329) at com.box.sdk.BoxAPIResponse.disconnect(BoxAPIResponse.java:149) ... 40 more\r\n```",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 20322626,
+      "login": "IValnou",
+      "type": "User",
+      "url": "https://api.github.com/users/IValnou"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/379/comments",
+    "comment_count": 1,
+    "created_at": "2016-12-19T11:58:20Z",
+    "updated_at": "2018-01-12T00:24:53Z",
+    "closed_at": "2018-01-12T00:24:53Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e1d",
+    "id": 184291063,
+    "number": 330,
+    "title": "BoxFolder.getCollaborations only returns the first 100 results",
+    "body": "`BoxFolder.getCollaborations()` doesn't return the correct result set if there are more than 1000 collaborations.\n\nThe HTTP reference states the maximum per-page limit is 1000; but `BoxFolder.getCollaborations()` doesn't even specify it (**so the default of 100 is used**) and doesn't paginate the results with a JSONIterator.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 1499307,
+      "login": "dorfire",
+      "type": "User",
+      "url": "https://api.github.com/users/dorfire"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/330/comments",
+    "comment_count": 1,
+    "created_at": "2016-10-20T17:25:46Z",
+    "updated_at": "2018-01-24T01:08:24Z",
+    "closed_at": "2018-01-24T01:08:24Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e3a",
+    "id": 180988831,
+    "number": 301,
+    "title": "BoxSearch with BoxMetadataFilter is not working",
+    "body": "`\nBoxSearch search = new BoxSearch(boxCon);\nBoxSearchParameters searchParms = new BoxSearchParameters();\nsearchParms.setType(\"file\");\n\n```\n         List<String> ancIds = new ArrayList<String>();\n         ancIds.add(prod_Stand_id);\n\n         BoxMetadataFilter metadataFilter = new BoxMetadataFilter();\n         metadataFilter.addFilter(\"group\", \"2200\");\n         metadataFilter.addFilter(\"source\", \"Grouper\");\n\n         metadataFilter.setScope(\"global\");\n\n         searchParms.setAncestorFolderIds(ancIds);\n```\n\n//           searchParms.setQuery(\"P2200_Opera\");\n\n```\n         searchParms.setMetadataFilter(metadataFilter);\n\n         parItemInfo = search.searchRange(0,10,searchParms);`\n```\n\nThe above code works if I comment this code `searchParms.setMetadataFilter(metadataFilter);`\n\nIt's not working with metadataFilter.  Below error message is thrown.\n{\"type\":\"error\",\"status\":400,\"code\":\"bad_request\",\"help_url\":\"http:\\/\\/developers.box.com\\/docs\\/#errors\",\"message\":\"Bad Request\",\"request_id\":\"156750733257f40743d9cae\"}\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 2395418,
+      "login": "amjoesph",
+      "type": "User",
+      "url": "https://api.github.com/users/amjoesph"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/301/comments",
+    "comment_count": 8,
+    "created_at": "2016-10-04T19:55:36Z",
+    "updated_at": "2017-12-24T03:33:56Z",
+    "closed_at": "2017-12-24T03:33:56Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e4f",
+    "id": 164144680,
+    "number": 280,
+    "title": "Invalid class cast in RealtimeServerConnection",
+    "body": "```\njava.lang.ClassCastException: com.box.sdk.BoxAPIResponse cannot be cast to com.box.sdk.BoxJSONResponse\n    at com.box.sdk.RealtimeServerConnection.<init>(RealtimeServerConnection.java:22) ~[classes/:na]\n    at com.box.sdk.EventStream$Poller.run(EventStream.java:183) ~[classes/:na]\n    at java.lang.Thread.run(Thread.java:745) ~[na:1.7.0_71]\n```\n\nI have only experienced this intermittently.  I do not have a consistent repro case.\n\nCursory review of BoxAPIRequest.java suggests that the events API did not return Content-Type=\"application/json\".\n\nhttps://github.com/box/box-java-sdk/blob/master/src/main/java/com/box/sdk/BoxAPIRequest.java#L418-L426\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 749094,
+      "login": "codyebberson",
+      "type": "User",
+      "url": "https://api.github.com/users/codyebberson"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/280/comments",
+    "comment_count": 1,
+    "created_at": "2016-07-06T18:37:23Z",
+    "updated_at": "2017-12-20T21:52:36Z",
+    "closed_at": "2017-12-20T21:52:36Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e5b",
+    "id": 162528857,
+    "number": 268,
+    "title": "Box Platform Error 400 - Invalid Request",
+    "body": "I set up my platform application via [docs.box.com](https://docs.box.com/docs/getting-started-box-platform) and followed the examples in [CreateAppUser](https://github.com/box/box-java-sdk/blob/master/src/example/java/com/box/sdk/example/CreateAppUser.java) and [AccessAsAppUser](https://github.com/box/box-java-sdk/blob/master/src/example/java/com/box/sdk/example/AccessAsAppUser.java).\nCreating the AppUser works fine but in `BoxDeveloperEditionAPIConnection.getAppUserConnection` I receive the error \n`{\"error\":\"invalid_request\",\"error_description\":\"Cannot obtain user token based on the enterprise configuration for your app\"}`.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 4162215,
+      "login": "Croissong",
+      "type": "User",
+      "url": "https://api.github.com/users/Croissong"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/268/comments",
+    "comment_count": 8,
+    "created_at": "2016-06-27T19:27:08Z",
+    "updated_at": "2016-06-29T23:09:16Z",
+    "closed_at": "2016-06-29T23:09:16Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e5e",
+    "id": 161991406,
+    "number": 265,
+    "title": "bug: BoxAPIException.getMessage does not properly return the exception message",
+    "body": "In the Java sdk, I noticed that if I call BoxAPIException.getMessage(), instead of obtaining the actual exception's error message (which is the value of the 'message' field), I obtain the following:\n'The API returned an error code: <error code>', which is certainly useless (as the code is already being returned from the BoxAPIException.getResponseCode() method).  I understand that we can always  parse the json returned in BoxAPIException.getResponse() to be able to classify the error as belonging to a more specific subtype of the error code, but having the getMessage() method actually work, would make it even easier to discriminate. \n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 155515,
+      "login": "pgoldweic",
+      "type": "User",
+      "url": "https://api.github.com/users/pgoldweic"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/265/comments",
+    "comment_count": 3,
+    "created_at": "2016-06-23T18:29:39Z",
+    "updated_at": "2018-01-04T00:13:36Z",
+    "closed_at": "2018-01-04T00:13:36Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e63",
+    "id": 161278081,
+    "number": 260,
+    "title": "BoxSearch in box-java-sdk-2.2.1-20160613.174312-1.jar is not working",
+    "body": "# BoxSearch\n\nBoxSearch search = new BoxSearch(boxCon);\n\n```\n BoxSearchParameters searchParms = new BoxSearchParameters();\n searchParms.setType(\"file\");\n List<String> ancIds = new ArrayList<String>();\n ancIds.add(prod_Stand_id);\n searchParms.setAncestorFolderIds(ancIds);\n searchParms.setKeyword(\"test\");\n\n PartialCollection<BoxItem.Info> parItemInfo = null;\n\n try {\n   parItemInfo = search.searchRange(10,10,searchParms);\n } catch (BoxAPIException e) {\n   log.error(e.getResponse(),e);\n }\n```\n\nIt throws below exception \n{\"type\":\"error\",\"status\":400,\"code\":\"bad_request\",\"context_info\":{\"errors\":[{\"reason\":\"missing_parameter\",\"name\":\"to_search\",\"message\":\"'to_search' is required\"}]},\"help_url\":\"http:\\/\\/developers.box.com\\/docs\\/#errors\",\"message\":\"Bad Request\",\"request_id\":\"13294361075762dcc1b8329\"}\n\nWhile looking at the BoxSearchParameters.getQueryParameters(). ->  is not generating to_search.  keyword field value is also not translated. \n\nMartin\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 2395418,
+      "login": "amjoesph",
+      "type": "User",
+      "url": "https://api.github.com/users/amjoesph"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      },
+      {
+        "id": 142595484,
+        "node_id": "MDU6TGFiZWwxNDI1OTU0ODQ=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/documentation",
+        "name": "documentation",
+        "color": "C792EA",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/260/comments",
+    "comment_count": 2,
+    "created_at": "2016-06-20T19:47:00Z",
+    "updated_at": "2016-06-24T18:30:50Z",
+    "closed_at": "2016-06-24T18:30:50Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e86",
+    "id": 147588820,
+    "number": 225,
+    "title": "Send non-file parts first in BoxMultipartRequest",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 1176392,
+      "login": "thiccar",
+      "type": "User",
+      "url": "https://api.github.com/users/thiccar"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/225/comments",
+    "comment_count": 2,
+    "created_at": "2016-04-11T23:46:49Z",
+    "updated_at": "2016-06-20T14:17:30Z",
+    "closed_at": "2016-06-20T14:17:29Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e8f",
+    "id": 139363166,
+    "number": 216,
+    "title": "BoxUser.moveFolderToUser() throws exception",
+    "body": "Hello,\n\nI updated to v2.1.1 to make use of the moveFolderToUser() method. However, I receive this exception message: \"Couldn't finish closing the connection to the Box API due to a network error or because the stream was already closed\"\n\nMy wrapper method using the REST request directly still works fine.\n\nthx, r\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 1486854,
+      "login": "robertrlandry",
+      "type": "User",
+      "url": "https://api.github.com/users/robertrlandry"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/216/comments",
+    "comment_count": 1,
+    "created_at": "2016-03-08T19:00:16Z",
+    "updated_at": "2018-01-10T01:13:07Z",
+    "closed_at": "2018-01-10T01:13:07Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10e9f",
+    "id": 128258412,
+    "number": 200,
+    "title": "Fails to get enterprise events if no events returned for the given interval",
+    "body": "A call to EventLog.getEnterpriseEvents fails when you don't provide a stream position, and the event log is empty for the given time interval. It fails because `next_stream_position` is a zero in this case. If the call is successful, i.e., because it found events in the given interval, `next_stream_position` will be a string. The exception is:\n\n```\njava.lang.UnsupportedOperationException: Not a string: 0\n    at com.eclipsesource.json.JsonValue.asString(JsonValue.java:365)\n    at com.box.sdk.EventLog.<init>(EventLog.java:38)\n    at com.box.sdk.EventLog.getEnterpriseEvents(EventLog.java:104)\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 119196,
+      "login": "danielandefors",
+      "type": "User",
+      "url": "https://api.github.com/users/danielandefors"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/200/comments",
+    "comment_count": 4,
+    "created_at": "2016-01-22T22:10:41Z",
+    "updated_at": "2016-11-11T00:00:19Z",
+    "closed_at": "2016-11-11T00:00:18Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ea1",
+    "id": 128088654,
+    "number": 198,
+    "title": "EventLog.getEnterpriseEvents fails when it is called with timezone containing \"+\"",
+    "body": "com.box.sdk.EventLog.getEnterpriseEvents ends with BoxAPIException when it is called with \"+\" timezone.\n\nMy PC's timezone setting is \"(UTC+09:00) Osaka,Sapporo,Tokyo\".\n\nI wrote the following code:\n\n``` java\nBoxAPIConnection api = new BoxAPIConnection(\"my-developer-token\"); \n\nCalendar cal = Calendar.getInstance();\nDate before = cal.getTime();\ncal.add(Calendar.DATE, -10);\nDate after = cal.getTime();\n\nEventLog log = EventLog.getEnterpriseEvents(api, after, before);\n```\n\nWhen I execute the above code, BoxAPIException occurs with the following message.\n\n```\ncom.box.sdk.BoxAPIException: The API returned an error code: 400\n```\n\nI found the following implementation in EventLog.getEnterpriseEvents function.\n\n``` java\nString afterString = BoxDateFormat.format(after);\nString beforeString = BoxDateFormat.format(before);\nURL url = ENTERPRISE_EVENT_URL_TEMPLATE.build(api.getBaseURL(), afterString, beforeString);\n```\n\nAnd, I found that `url` has like the following `query` value, when I execute my code on my PC.\n\n```\nstream_type=admin_logs&limit=500&created_after=2016-01-12T14:20:18+0900&created_before=2016-01-22T14:20:18+0900\n```\n\nI've tried to call Enterprise Events API with the above query, and, I've got 400 response code.\nWhen I tried to URL encode \"+\" and call the same API, I've got OK response. \n\n```\nstream_type=admin_logs&limit=500&created_after=2016-01-12T14:20:18%2B0900&created_before=2016-01-22T14:20:18%2B0900\n```\n\nI think that `afterString` and `beforeString` in EventLog.getEnterpriseEvents function should be URL encoded like:\n\n``` java\nString afterString = URLEncoder.encode(BoxDateFormat.format(after), \"UTF-8\");\nString beforeString = URLEncoder.encode(BoxDateFormat.format(before), \"UTF-8\");\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 16830963,
+      "login": "hiroyukitanaka",
+      "type": "User",
+      "url": "https://api.github.com/users/hiroyukitanaka"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/198/comments",
+    "comment_count": 3,
+    "created_at": "2016-01-22T05:38:53Z",
+    "updated_at": "2016-06-15T20:51:01Z",
+    "closed_at": "2016-06-15T20:51:01Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ec0",
+    "id": 116815066,
+    "number": 167,
+    "title": "Can't delete a version",
+    "body": "Using 1.1.0 with a developer token:\n\n``` java\nList<BoxFileVersion> vs = new ArrayList<BoxFileVersion>(f.getVersions());\nfor (int i = vs.size()-1; i>2; i--) {\n    BoxFileVersion v = vs.get(i);\n    System.out.format(\"file %d created at %s\\n\", i, v.getCreatedAt());\n    v.delete();\n}\n```\n\nprints:\n\n```\nfile 232 created at Wed Jun 24 14:49:02 UTC 2015\ncom.box.sdk.BoxAPIException: The API returned an error code: 400\n        at com.box.sdk.BoxAPIResponse.<init>(BoxAPIResponse.java:69)\n        at com.box.sdk.BoxJSONResponse.<init>(BoxJSONResponse.java:30)\n        at com.box.sdk.BoxAPIRequest.trySend(BoxAPIRequest.java:414)\n        at com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:200)\n        at com.box.sdk.BoxAPIRequest.send(BoxAPIRequest.java:175)\n        at com.box.sdk.BoxFileVersion.delete(BoxFileVersion.java:139)\n        at App$1.run(App.java:56)\n        at java.lang.Thread.run(Thread.java:745)\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 152389,
+      "login": "jcable",
+      "type": "User",
+      "url": "https://api.github.com/users/jcable"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/167/comments",
+    "comment_count": 2,
+    "created_at": "2015-11-13T17:42:50Z",
+    "updated_at": "2017-12-24T03:06:36Z",
+    "closed_at": "2017-12-24T03:06:36Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ec2",
+    "id": 115425136,
+    "number": 165,
+    "title": "upgrading from 0.7.0 to 1.1.0 fails with oauth refresh error",
+    "body": "We are upgrading to 1.1.0 and it seems oauth refresh is failing. We are seeing this error message when trying to refresh an expired oauth token:\n\n{\"error\":\"invalid_grant\",\"error_description\":\"Refresh token has expired\"}\n\nThe code that triggered this error:\n\n``` java\nBoxAPIConnection api = new BoxAPIConnection(clientID, clientSecret, boxAccessToken, boxRefreshToken);\napi.setAutoRefresh(false);\nBoxFolder appFolder = new BoxFolder(api, boxFolderId);//FIRST EX: com.box.sdk.BoxAPIException: The API returned an error code: 401\n\ntry {\n\n// check if access token in valid\n        BoxFolder.Info info = appFolder.getInfo();\n\n      } catch (BoxAPIException ex) {\n          // access token expired, refresh access token\n          api.refresh();\n// check if access token in valid\n            BoxFolder.Info info = appFolder.getInfo();//SECOND EX: com.box.sdk.BoxAPIException: The API returned an error code: 400\n{\"error\":\"invalid_grant\",\"error_description\":\"Refresh token has expired\"}\n      }\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": { "id": 442380, "login": "aruld", "type": "User", "url": "https://api.github.com/users/aruld" },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/165/comments",
+    "comment_count": 9,
+    "created_at": "2015-11-06T03:08:08Z",
+    "updated_at": "2018-01-24T01:14:14Z",
+    "closed_at": "2018-01-24T01:09:49Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ec3",
+    "id": 114840684,
+    "number": 164,
+    "title": "Using the same refresh token when creating connection instances concurrently",
+    "body": "Box gives the user the ability to generate refresh token that will be valid for 60 days using OAuth 2.0. In my java application I want the user to authenticate himself once in 60 days.\nUsing the refresh token I want to be able create BoxAPIConnection instances from a different threads or processes. The problem is that when one thread/ process connecting the API, the SDK refreshes the token and it makes the previous refresh token invalid.\nNow, a different thread/ process won't be able to use the previous refresh token in order to access the BOX API.\nHow can I use the refresh token in order to generate an new access token, and to reuse the same RT in concurrent threads or processes?\n\nThank you.\nOz\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 5811527,
+      "login": "funtom-io",
+      "type": "User",
+      "url": "https://api.github.com/users/funtom-io"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/164/comments",
+    "comment_count": 6,
+    "created_at": "2015-11-03T15:26:05Z",
+    "updated_at": "2018-02-08T01:32:07Z",
+    "closed_at": "2018-02-08T01:32:07Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ed1",
+    "id": 100470909,
+    "number": 150,
+    "title": "File Name Got Truncated",
+    "body": "When I tried to create the file with abc\";def then file name got truncated. Also if the file name starts with space than also the leading space got truncated. This issue seems with escaping. I have tried with the box 1.1.0 version.\n\nI have tried to create file with name abc;def and abc\"def, these files are successfully created.\n\nI tried to debug the box sdk and found that while writing the filename in the request : Content-disposition header (due to some escaping issue with the file name) the file name got truncated. Please refer(writePartHeader method of BoxMultipartRequest).\n\nI also tried to encode the filename using UTF-8 but that also does not work\n\nCan you please let me how to escape these special character in case of box.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 13759972,
+      "login": "ravikantagarwal",
+      "type": "User",
+      "url": "https://api.github.com/users/ravikantagarwal"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/150/comments",
+    "comment_count": 3,
+    "created_at": "2015-08-12T05:34:18Z",
+    "updated_at": "2016-06-16T23:11:14Z",
+    "closed_at": "2016-06-16T23:11:14Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ed4",
+    "id": 96598461,
+    "number": 147,
+    "title": "BoxCollaboration.updateInfo() com.box.sdk.BoxAPIResponse cannot be cast to com.box.sdk.BoxJSONResponse",
+    "body": "#### Workflow the code is doing\n1. Creates a new folder\n2. Adds a collaboration to a user passed in on the command line\n3. Sets the role for the user to owner\n4. Calls BoxCollaboration.updateInfo() with the updated role... causing the exception below\n#### Exception happening on the last line\n\n```\nBoxCollaboration.Info newCollaborationInfo = folder.collaborate(userName, BoxCollaboration.Role.EDITOR)\n\nnewCollaborationInfo.setRole(BoxCollaboration.Role.OWNER)\n\nBoxCollaboration bc = newCollaborationInfo.getResource()\nbc.updateInfo(newCollaborationInfo)\n```\n#### Exception\n\n```\nException in thread \"main\" java.lang.ClassCastException: com.box.sdk.BoxAPIResponse cannot be cast to com.box.sdk.BoxJSONResponse\n        at com.box.sdk.BoxCollaboration.updateInfo(BoxCollaboration.java:84)\n        at com.box.sdk.BoxCollaboration$updateInfo.call(Unknown Source)\n        at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:45)\n        at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:110)\n        at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:122)\n        at PrintToBoxHome.setupCollaboration(PrintToBoxHome.groovy:195)\n        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n        at java.lang.reflect.Method.invoke(Method.java:606)\n        at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:90)\n        at org.codehaus.groovy.runtime.callsite.StaticMetaMethodSite$StaticMetaMethodSiteNoUnwrapNoCoerce.invoke(StaticMetaMethodSite.java:148)\n        at org.codehaus.groovy.runtime.callsite.StaticMetaMethodSite.callStatic(StaticMetaMethodSite.java:99)\n        at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallStatic(CallSiteArray.java:53)\n        at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callStatic(AbstractCallSite.java:191)\n        at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callStatic(AbstractCallSite.java:219)\n        at PrintToBoxHome.main(PrintToBoxHome.groovy:60)\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 474468,
+      "login": "luyseyal",
+      "type": "User",
+      "url": "https://api.github.com/users/luyseyal"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/147/comments",
+    "comment_count": 1,
+    "created_at": "2015-07-22T15:43:43Z",
+    "updated_at": "2016-10-13T17:57:03Z",
+    "closed_at": "2016-10-13T17:57:03Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ed9",
+    "id": 94406496,
+    "number": 142,
+    "title": "BoxAPIConnection should use proxy when authenticating",
+    "body": "The `BoxAPIConnection#authenticate(String)` method doesn't use a proxy if one is set. For example:\n\n``` java\nBoxAPIConnection api = new BoxAPIConnection(\"clientID\", \"clientSecret\");\napi.setProxy(myProxy);\napi.authenticate(\"authCode\"); // Authentication doesn't use myProxy.\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/142/comments",
+    "comment_count": 0,
+    "created_at": "2015-07-10T22:37:28Z",
+    "updated_at": "2015-07-13T22:04:08Z",
+    "closed_at": "2015-07-13T22:04:08Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ee2",
+    "id": 88223254,
+    "number": 133,
+    "title": "NPE in RequestInterceptor.onRequest() BoxAPIRequest.toString()",
+    "body": "We implemented a simple RequestInterceptor to log outbound BoxAPIRequest objects. We call the toString() method on the request object. The SDK (v 1.0.0) throws an NPE (null pointer) at:\n\n``` java\nfor (Map.Entry<String, List<String>> entry : this.requestProperties.entrySet()) { ... }\n```\n\nbecause this.requestProperties is null when the interceptor is invoked. This is because the interceptor callback is being called before the requestProperties have been set. A fix to move the interceptor invocation to after line # 372 where this.requestProperties is initialized works.\n\n``` java\nthis.requestProperties = connection.getRequestProperties();\n```\n\n(move interceptor calling to around line # 374)\n\n``` java\nif (this.api != null) {\n    RequestInterceptor interceptor = this.api.getRequestInterceptor();\n    if (interceptor != null) {\n        BoxAPIResponse response = interceptor.onRequest(this);\n        if (response != null) {\n            return response;\n        }\n    }\n}\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 12472659,
+      "login": "raj-jain",
+      "type": "User",
+      "url": "https://api.github.com/users/raj-jain"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/133/comments",
+    "comment_count": 2,
+    "created_at": "2015-06-14T17:58:26Z",
+    "updated_at": "2018-04-30T20:27:18Z",
+    "closed_at": "2018-04-30T20:27:18Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ee5",
+    "id": 86856659,
+    "number": 130,
+    "title": "Search pagination",
+    "body": "If I search on the root folder, using rootFolder.search(), I get only maximum 200 results, while with the REST api I get much more...\nI use the query for example \"0 1 2 3 4 5 6 7 8 9\" to search for the file id's that contains one of these numbers (supposedly most of them ), and I get 200 results while in the REST I get around 400+-.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 11175515,
+      "login": "itaisoudry",
+      "type": "User",
+      "url": "https://api.github.com/users/itaisoudry"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/130/comments",
+    "comment_count": 1,
+    "created_at": "2015-06-10T06:21:16Z",
+    "updated_at": "2016-06-21T01:32:17Z",
+    "closed_at": "2016-06-21T01:32:17Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ee9",
+    "id": 81454456,
+    "number": 126,
+    "title": "rename folder causes BoxAPIException",
+    "body": "The following code will raise a BoxAPIException everytime it is executed. The renaming goes through but the Exception is thrown.\n\n```\n[BoxAPIException: Couldn't finish closing the connection to the Box API due to a network error or because the stream was already closed.]\n```\n\nThis is my code\n\n``` Java\npublic static void renameFolder(String developerToken, String folderID, String name) {\n    BoxAPIConnection connection = new BoxAPIConnection(developerToken);\n    BoxFolder folder = new BoxFolder(connection, folderID);\n    folder.rename(name);\n}    \n```\n\nAm I stupid or is there maybe something wrong here?\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 11294215,
+      "login": "joh-mue",
+      "type": "User",
+      "url": "https://api.github.com/users/joh-mue"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/126/comments",
+    "comment_count": 4,
+    "created_at": "2015-05-27T13:47:47Z",
+    "updated_at": "2017-11-13T21:02:16Z",
+    "closed_at": "2016-11-08T21:11:13Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10ef3",
+    "id": 68432616,
+    "number": 116,
+    "title": "Groups aren't handled when parsing the accessible_by field in collaborations",
+    "body": "Hi!\n\nPlaying with the Java SDK  I was trying to retrieve the collaborators for a folder:\n\n``` java\nCollection<BoxCollaboration.Info> collaborations = parentFolder.getCollaborations();\nfor(BoxCollaboration.Info collaborationInfo:collaborations) {\n    BoxCollaboration.Role role = collaborationInfo.getRole();\n    if(isReaderRole(role)) {\n        BoxCollaborator.Info accessibleBy = collaborationInfo.getAccessibleBy();\n        if(accessibleBy instanceof BoxUser.Info)\n            permissionType = USER_PERMISSION_TYPE;\n        else if(accessibleBy instanceof BoxGroup.Info)\n            permissionType = GROUP_PERMISSION_TYPE;\n        aclPermissions.add(permissionType+\"-\"+accessibleBy.getID());\n    }\n}\n```\n\nApart the simple code snippets, my problem is that even when the collaborator is a group, I get a BoxUser (a strange instance of this object with really few attributes).\n\nI was expecting a BoxGroup there, am I doing anything wrong?\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 513195,
+      "login": "alessandrobenedetti",
+      "type": "User",
+      "url": "https://api.github.com/users/alessandrobenedetti"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/116/comments",
+    "comment_count": 3,
+    "created_at": "2015-04-14T16:30:11Z",
+    "updated_at": "2015-05-08T20:25:23Z",
+    "closed_at": "2015-05-08T20:25:23Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10efe",
+    "id": 65775218,
+    "number": 105,
+    "title": "Path collections should be parsed as a BoxFolder.Info",
+    "body": "Right now `BoxItem.getPathCollection()` returns a `List<BoxFolder>`. This means that any additional information that was included in the response (such as the folder's name) gets thrown away. It should parse and return a `List<BoxFolder.Info>` instead.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/105/comments",
+    "comment_count": 0,
+    "created_at": "2015-04-01T20:43:29Z",
+    "updated_at": "2015-04-14T22:15:10Z",
+    "closed_at": "2015-04-14T22:15:10Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f15",
+    "id": 60679263,
+    "number": 82,
+    "title": "Auto renewal of tokens not happening when the system unused for few hours (expired)",
+    "body": "Found that the SDK is not renewing the tokens automatically when the system was unused for few hours. API is responding with 401 error, but new SDK is not handling that to renew it.\n\nHowever old SDK is renewing the token if it identifies the 401 error for the above scenario.\n\nNew SDK does renew the token if it is expiring in near feature. But if it was expired, it is not renewing.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 11234141,
+      "login": "tcharles79",
+      "type": "User",
+      "url": "https://api.github.com/users/tcharles79"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/82/comments",
+    "comment_count": 12,
+    "created_at": "2015-03-11T15:45:57Z",
+    "updated_at": "2015-04-10T22:54:06Z",
+    "closed_at": "2015-04-10T22:54:06Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f22",
+    "id": 56455964,
+    "number": 69,
+    "title": "Metadata class shouldn't throw NPE for missing keys",
+    "body": "The `getID()`, `getTypeName()`, and `getParentID()` methods can possibly throw a NPE if an empty metadata object is created. Similarly, the `get(String)` method will throw an exception if a requested key doesn't exist. This is because `this.values.get(\"some-key\")` returns null and then `asString()` gets called on it.\n\nThese methods should do null checks before calling `asString()` and return null if the key doesn't exist.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/69/comments",
+    "comment_count": 0,
+    "created_at": "2015-02-03T23:32:57Z",
+    "updated_at": "2015-02-06T02:06:48Z",
+    "closed_at": "2015-02-06T02:06:48Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f24",
+    "id": 56455280,
+    "number": 67,
+    "title": "Metadata integration tests fail",
+    "body": "When metadata is set in `createMetadataSucceeds()` and `updateMetadataSucceeds()` in `BoxFileTest`, there's no leading slash which causes the key to be set as `oo` instead of `foo`.\n\n``` java\nuploadedFile.createMetadata(new Metadata().add(\"foo\", \"bar\"));\n```\n\nshould be\n\n``` java\nuploadedFile.createMetadata(new Metadata().add(\"/foo\", \"bar\"));\n```\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/67/comments",
+    "comment_count": 0,
+    "created_at": "2015-02-03T23:25:58Z",
+    "updated_at": "2015-02-06T02:06:48Z",
+    "closed_at": "2015-02-06T02:06:48Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f29",
+    "id": 55840227,
+    "number": 62,
+    "title": "Bug in BoxUser phone number parsing",
+    "body": "The \"phone\" field is being parsed into the `jobTitle` field in `BoxUser`.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/62/comments",
+    "comment_count": 0,
+    "created_at": "2015-01-29T00:55:24Z",
+    "updated_at": "2015-02-10T23:11:36Z",
+    "closed_at": "2015-02-10T23:11:36Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f2e",
+    "id": 54532589,
+    "number": 57,
+    "title": "Duplicate events get emitted from EventStream",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 702249,
+      "login": "tluthra",
+      "type": "User",
+      "url": "https://api.github.com/users/tluthra"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/57/comments",
+    "comment_count": 0,
+    "created_at": "2015-01-16T02:20:44Z",
+    "updated_at": "2015-01-17T02:49:55Z",
+    "closed_at": "2015-01-17T02:49:55Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f35",
+    "id": 54508799,
+    "number": 50,
+    "title": "Event type parsing should be resilient against unknown types",
+    "body": "If a new event type is added to the API, then event parsing will fail since there won't be a corresponding `BoxEvent.Type` enum. This should be improved so that the event type can be set to UNKNOWN.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/50/comments",
+    "comment_count": 0,
+    "created_at": "2015-01-15T21:46:07Z",
+    "updated_at": "2015-01-16T01:05:14Z",
+    "closed_at": "2015-01-16T01:05:14Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f40",
+    "id": 52189763,
+    "number": 39,
+    "title": "EventStream should clear duplicate event cache after it's stopped",
+    "body": "",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      },
+      {
+        "id": 141272695,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2OTU=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/wontfix",
+        "name": "wontfix",
+        "color": "ffffff",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/39/comments",
+    "comment_count": 0,
+    "created_at": "2014-12-17T01:14:01Z",
+    "updated_at": "2015-04-14T00:50:28Z",
+    "closed_at": "2015-04-14T00:50:28Z"
+  },
+  {
+    "_id": "62383664bf8f75133aa10f41",
+    "id": 52189415,
+    "number": 38,
+    "title": "Remove URL fields from BoxFolder and BoxFile",
+    "body": "These classes have some URLs prebuilt and cached as field variables, which means they will be incorrect if the `BoxAPIConnection` base URL changes after the class is instantiated.\n",
+    "type": "issue",
+    "pull_urL": null,
+    "state": "closed",
+    "author": {
+      "id": 230338,
+      "login": "gcurtis",
+      "type": "User",
+      "url": "https://api.github.com/users/gcurtis"
+    },
+    "labels": [
+      {
+        "id": 141272689,
+        "node_id": "MDU6TGFiZWwxNDEyNzI2ODk=",
+        "url": "https://api.github.com/repos/box/box-java-sdk/labels/bug",
+        "name": "bug",
+        "color": "FF5370",
+        "default": true,
+        "description": null
+      }
+    ],
+    "repo": "box-java-sdk",
+    "organization": "box",
+    "comments_url": "https://api.github.com/repos/box/box-java-sdk/issues/38/comments",
+    "comment_count": 0,
+    "created_at": "2014-12-17T01:08:42Z",
+    "updated_at": "2014-12-17T01:36:06Z",
+    "closed_at": "2014-12-17T01:36:06Z"
+  }
+]
