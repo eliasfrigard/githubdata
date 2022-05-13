@@ -393,11 +393,6 @@ export default function App() {
         <Bar options={options} data={totalMeasurements} />
       </div>
       <div class="break"></div>
-      {/* 
-      <div className='chart'>
-        <h1>Response / Fields</h1>
-        <Scatter data={responseScatter} />
-      </div> */}
     </>
   )
 }
