@@ -18,3 +18,7 @@ code {
 .chart {
   max-height: 100vh;
 }
+
+.chart .bar {
+  height: 500px;
+}
