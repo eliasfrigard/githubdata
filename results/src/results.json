@@ -1,202 +1,209 @@
 {
   "restResults": {
     "Q1": {
-      "cpu": 140.3,
-      "memory": 36.4321243,
-      "response": 4.72654,
-      "iterations": 100000,
-      "totalTime": 472654
+      "cpu": 15207,
+      "memory": 33.43208333333324,
+      "response": 49.1534,
+      "iterations": 50000,
+      "totalTime": 2463100
     },
     "Q2": {
-      "cpu": 119.6,
-      "memory": 36.42214540000002,
-      "response": 4.674316,
-      "iterations": 250000,
-      "totalTime": 1168579
+      "cpu": 3049,
+      "memory": 31.276523726150195,
+      "response": 14.231586980920314,
+      "iterations": 371250,
+      "totalTime": 5304344
     },
     "Q3": {
-      "cpu": 114,
-      "memory": 36.66592744368678,
-      "response": 4.443997933457327,
-      "iterations": 2419500,
-      "totalTime": 10752253
+      "cpu": 198.5,
+      "memory": 35.89073428394235,
+      "response": 4.62071157952745,
+      "iterations": 1209750,
+      "totalTime": 5616414
     },
     "Q4": {
-      "cpu": 108.5,
-      "memory": 36.72704819999999,
-      "response": 4.602400000000001,
-      "iterations": 100000,
-      "totalTime": 460240
+      "cpu": 1829.5,
+      "memory": 30.52129700000021,
+      "response": 69.97749166666667,
+      "iterations": 50000,
+      "totalTime": 3508231
     },
     "Q5": {
-      "cpu": 969.7,
-      "memory": 189.33781640000043,
-      "response": 23.17014857142857,
-      "iterations": 175000,
-      "totalTime": 4054776
+      "cpu": 7787,
+      "memory": 157.5884128095256,
+      "response": 50.17301904761905,
+      "iterations": 87500,
+      "totalTime": 4394593
     },
     "Q6": {
-      "cpu": 114.4,
-      "memory": 38.31300535714286,
-      "response": 4.642201428571429,
-      "iterations": 700000,
-      "totalTime": 3249541
+      "cpu": 677.5,
+      "memory": 31.90070917857122,
+      "response": 6.819717857142857,
+      "iterations": 350000,
+      "totalTime": 2385327
     },
     "Q7": {
-      "cpu": 110.8,
-      "memory": 38.28275271111114,
-      "response": 4.454809523809524,
-      "iterations": 1575000,
-      "totalTime": 7016325
+      "cpu": 196,
+      "memory": 36.111671592591634,
+      "response": 4.662429100529101,
+      "iterations": 787500,
+      "totalTime": 3682049
     },
     "Q8": {
-      "cpu": 136.9,
-      "memory": 38.3266172,
-      "response": 4.668279999999999,
-      "iterations": 25000,
-      "totalTime": 116707
+      "cpu": 13733,
+      "memory": 33.25162066666671,
+      "response": 45.278999999999996,
+      "iterations": 37500,
+      "totalTime": 1700285
     },
     "Q9": {
-      "cpu": 427.9,
-      "memory": 38.756013509999924,
-      "response": 4.430569,
-      "iterations": 1000000,
-      "totalTime": 4430569
+      "cpu": 1169.5,
+      "memory": 36.605843616666505,
+      "response": 5.978490833333334,
+      "iterations": 500000,
+      "totalTime": 2974776
     },
     "Q10": {
-      "cpu": 149.4,
-      "memory": 38.756730999999995,
-      "response": 4.731,
-      "iterations": 10000,
-      "totalTime": 47310
+      "cpu": 14992,
+      "memory": 33.856032380952655,
+      "response": 52.945565476190474,
+      "iterations": 70000,
+      "totalTime": 3709755
     },
     "Q11": {
-      "cpu": 100.8,
-      "memory": 38.17583666666668,
-      "response": 4.519026666666667,
-      "iterations": 150000,
-      "totalTime": 677854
+      "cpu": 1563,
+      "memory": 31.236517500000538,
+      "response": 70.18031666666667,
+      "iterations": 75000,
+      "totalTime": 5230218
     },
     "Q12": {
-      "cpu": 878.5,
-      "memory": 115.94925057499981,
-      "response": 13.5825025,
-      "iterations": 400000,
-      "totalTime": 5433001
+      "cpu": 2147.5,
+      "memory": 112.45059781250143,
+      "response": 15.289366666666666,
+      "iterations": 200000,
+      "totalTime": 3066546
     },
     "Q13": {
-      "cpu": 109.4,
-      "memory": 38.406026650000015,
-      "response": 4.6343125,
-      "iterations": 800000,
-      "totalTime": 3707450
+      "cpu": 346.5,
+      "memory": 35.24087770833308,
+      "response": 5.277641666666666,
+      "iterations": 400000,
+      "totalTime": 2111629
     },
     "Q14": {
-      "cpu": 108.9,
-      "memory": 38.35521130769237,
-      "response": 4.450036153846154,
-      "iterations": 1300000,
-      "totalTime": 5785047
+      "cpu": 164.5,
+      "memory": 36.68876455128243,
+      "response": 4.515200641025642,
+      "iterations": 650000,
+      "totalTime": 2934477
     }
   },
   "graphResults": {
     "Q1": {
-      "cpu": 1420.7,
-      "memory": 37.09782219999998,
-      "response": 6.21946,
-      "iterations": 100000,
-      "totalTime": 621946
+      "cpu": 16891,
+      "memory": 33.7966983333333,
+      "response": 30.01095,
+      "iterations": 50000,
+      "totalTime": 1500679
     },
     "Q2": {
-      "cpu": 2396.1,
-      "memory": 38.79067168,
-      "response": 7.7051680000000005,
-      "iterations": 250000,
-      "totalTime": 1926292
+      "cpu": 6593,
+      "memory": 34.44183502805839,
+      "response": 16.015781144781144,
+      "iterations": 371250,
+      "totalTime": 5938014
     },
     "Q3": {
-      "cpu": 2197.4,
-      "memory": 39.521767228766294,
-      "response": 7.413756974581526,
-      "iterations": 2419500,
-      "totalTime": 17937585
+      "cpu": 2611.5,
+      "memory": 39.739903020595634,
+      "response": 8.058094303230696,
+      "iterations": 1209750,
+      "totalTime": 9765070
     },
     "Q4": {
-      "cpu": 1252.4,
-      "memory": 39.408374399999985,
-      "response": 5.890870000000001,
-      "iterations": 100000,
-      "totalTime": 589087
+      "cpu": 3177.5,
+      "memory": 32.49756841666671,
+      "response": 70.17079166666667,
+      "iterations": 50000,
+      "totalTime": 3515330
     },
     "Q5": {
-      "cpu": 4092.5,
-      "memory": 39.603022228571476,
-      "response": 11.560508571428572,
-      "iterations": 175000,
-      "totalTime": 2023089
+      "cpu": 11788,
+      "memory": 34.05867142857161,
+      "response": 33.68002380952381,
+      "iterations": 87500,
+      "totalTime": 2952684
     },
     "Q6": {
-      "cpu": 2288.3,
-      "memory": 39.6467570285713,
-      "response": 7.431107142857144,
-      "iterations": 700000,
-      "totalTime": 5201775
+      "cpu": 3868,
+      "memory": 35.82662878571421,
+      "response": 10.452696428571429,
+      "iterations": 350000,
+      "totalTime": 3660056
     },
     "Q7": {
-      "cpu": 2195,
-      "memory": 39.63486605714293,
-      "response": 7.365567619047619,
-      "iterations": 1575000,
-      "totalTime": 11600769
+      "cpu": 2627,
+      "memory": 39.41979712698436,
+      "response": 8.086540211640212,
+      "iterations": 787500,
+      "totalTime": 6368455
     },
     "Q8": {
-      "cpu": 1415.3,
-      "memory": 39.68486160000001,
-      "response": 6.04976,
-      "iterations": 25000,
-      "totalTime": 151244
+      "cpu": 16263,
+      "memory": 33.632021222222114,
+      "response": 33.08317777777778,
+      "iterations": 37500,
+      "totalTime": 1231236
     },
     "Q9": {
-      "cpu": 1519.4,
-      "memory": 39.63958299000011,
-      "response": 5.858063,
-      "iterations": 1000000,
-      "totalTime": 5858063
+      "cpu": 2391,
+      "memory": 39.461033841666435,
+      "response": 6.80926,
+      "iterations": 500000,
+      "totalTime": 3390929
     },
     "Q10": {
-      "cpu": 1340.1,
-      "memory": 39.53985700000002,
-      "response": 6.0295000000000005,
-      "iterations": 10000,
-      "totalTime": 60295
+      "cpu": 16799.5,
+      "memory": 33.68909934523788,
+      "response": 34.899541666666664,
+      "iterations": 70000,
+      "totalTime": 2434455
     },
     "Q11": {
-      "cpu": 2168.8,
-      "memory": 39.541145399999955,
-      "response": 7.356446666666668,
-      "iterations": 150000,
-      "totalTime": 1103467
+      "cpu": 4737.5,
+      "memory": 34.1718760555556,
+      "response": 73.2319,
+      "iterations": 75000,
+      "totalTime": 5472390
     },
     "Q12": {
-      "cpu": 2822,
-      "memory": 39.61077400000006,
-      "response": 8.5324275,
-      "iterations": 400000,
-      "totalTime": 3412971
+      "cpu": 4137.5,
+      "memory": 39.68673983333315,
+      "response": 10.4088375,
+      "iterations": 200000,
+      "totalTime": 2064477
     },
     "Q13": {
-      "cpu": 2343.7,
-      "memory": 39.680413999999914,
-      "response": 7.551253749999999,
-      "iterations": 800000,
-      "totalTime": 6041003
+      "cpu": 3352.5,
+      "memory": 39.01168561458334,
+      "response": 9.480570833333333,
+      "iterations": 400000,
+      "totalTime": 3777717
     },
     "Q14": {
-      "cpu": 2177.8,
-      "memory": 39.64312503076944,
-      "response": 7.313838461538462,
-      "iterations": 1300000,
-      "totalTime": 9507990
+      "cpu": 2149.5,
+      "memory": 40.10839423717878,
+      "response": 7.239216666666667,
+      "iterations": 650000,
+      "totalTime": 4700072
     }
+  },
+  "overFetching": {
+    "cpu": 33650.5,
+    "memory": 36.51687829999953,
+    "response": 83.63928833333333,
+    "iterations": 130000,
+    "totalTime": 12139003
   }
 }
