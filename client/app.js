@@ -1,119 +1,136 @@
-import { interceptRequest, interceptResponse } from './queries/utils/interceptors.js'
-import { writeFile } from './queries/utils/io-utils.js'
-import ProgressBar from './queries/utils/progress-ui.js'
+import { interceptRequest, interceptResponse } from "./queries/utils/interceptors.js"
+import { writeFile } from "./queries/utils/io-utils.js"
+import ProgressBar from "./queries/utils/progress-ui.js"
 
 // Warmup script.
-import { warmupRest, warmupGraphQL } from './queries/utils/warmup.js'
+import { warmupRest, warmupGraphQL } from "./queries/utils/warmup.js"
 
 // Import REST queries.
-import rest1 from './queries/REST/rest1.js'
-import rest2 from './queries/REST/rest2.js'
-import rest3 from './queries/REST/rest3.js'
-import rest4 from './queries/REST/rest4.js'
-import rest5 from './queries/REST/rest5.js'
-import rest6 from './queries/REST/rest6.js'
-import rest7 from './queries/REST/rest7.js'
-import rest8 from './queries/REST/rest8.js'
-import rest9 from './queries/REST/rest9.js'
-import rest10 from './queries/REST/rest10.js'
-import rest11 from './queries/REST/rest11.js'
-import rest12 from './queries/REST/rest12.js'
-import rest13 from './queries/REST/rest13.js'
-import rest14 from './queries/REST/rest14.js'
+import rest1 from "./queries/REST/rest1.js"
+import rest2 from "./queries/REST/rest2.js"
+import rest3 from "./queries/REST/rest3.js"
+import rest4 from "./queries/REST/rest4.js"
+import rest5 from "./queries/REST/rest5.js"
+import rest6 from "./queries/REST/rest6.js"
+import rest7 from "./queries/REST/rest7.js"
+import rest8 from "./queries/REST/rest8.js"
+import rest9 from "./queries/REST/rest9.js"
+import rest10 from "./queries/REST/rest10.js"
+import rest11 from "./queries/REST/rest11.js"
+import rest12 from "./queries/REST/rest12.js"
+import rest13 from "./queries/REST/rest13.js"
+import rest14 from "./queries/REST/rest14.js"
 
 // Import GraphQL queries.
-import graph1 from './queries/GraphQL/graph1.js'
-import graph2 from './queries/GraphQL/graph2.js'
-import graph3 from './queries/GraphQL/graph3.js'
-import graph4 from './queries/GraphQL/graph4.js'
-import graph5 from './queries/GraphQL/graph5.js'
-import graph6 from './queries/GraphQL/graph6.js'
-import graph7 from './queries/GraphQL/graph7.js'
-import graph8 from './queries/GraphQL/graph8.js'
-import graph9 from './queries/GraphQL/graph9.js'
-import graph10 from './queries/GraphQL/graph10.js'
-import graph11 from './queries/GraphQL/graph11.js'
-import graph12 from './queries/GraphQL/graph12.js'
-import graph13 from './queries/GraphQL/graph13.js'
-import graph14 from './queries/GraphQL/graph14.js'
+import graph1 from "./queries/GraphQL/graph1.js"
+import graph2 from "./queries/GraphQL/graph2.js"
+import graph3 from "./queries/GraphQL/graph3.js"
+import graph4 from "./queries/GraphQL/graph4.js"
+import graph5 from "./queries/GraphQL/graph5.js"
+import graph6 from "./queries/GraphQL/graph6.js"
+import graph7 from "./queries/GraphQL/graph7.js"
+import graph8 from "./queries/GraphQL/graph8.js"
+import graph9 from "./queries/GraphQL/graph9.js"
+import graph10 from "./queries/GraphQL/graph10.js"
+import graph11 from "./queries/GraphQL/graph11.js"
+import graph12 from "./queries/GraphQL/graph12.js"
+import graph13 from "./queries/GraphQL/graph13.js"
+import graph14 from "./queries/GraphQL/graph14.js"
 
-// GraphQL query for testing relative over-fetching performance.
-import graph15 from './queries/GraphQL/graph15.js'
+// GraphQL query for testing over-fetching performance.
+import graph15 from "./queries/GraphQL/graph15.js"
 
-async function main() {
+const restQueries = [
+  rest1,
+  rest2,
+  rest3,
+  rest4,
+  rest5,
+  rest6,
+  rest7,
+  rest8,
+  rest9,
+  rest10,
+  rest11,
+  rest12,
+  rest13,
+  rest14,
+]
+
+const graphQueries = [
+  graph1,
+  graph2,
+  graph3,
+  graph4,
+  graph5,
+  graph6,
+  graph7,
+  graph8,
+  graph9,
+  graph10,
+  graph11,
+  graph12,
+  graph13,
+  graph14,
+]
+
+const iterationCounts = [
+  10000, // Q1
+  250, // Q2
+  10, // Q3
+  10000, // Q4
+  2500, // Q5
+  10000, // Q6
+  2500, // Q7
+  2500, // Q8
+  5000, // Q9
+  1000, // Q10
+  150, // Q11
+  5000, // Q12
+  10000, // Q13
+  5000, // Q14
+]
+
+async function runTestSuite(testSuiteIteration) {
   // Use interceptors for performance measurements.
   interceptRequest()
   interceptResponse()
 
-  // Set iteration count varialbes.
-  // Equal for both APIs.
-  const iterationsQ1 = 10000
-  const iterationsQ2 = 250
-  const iterationsQ3 = 10
-  const iterationsQ4 = 10000
-  const iterationsQ5 = 2500
-  const iterationsQ6 = 10000
-  const iterationsQ7 = 2500
-  const iterationsQ8 = 2500
-  const iterationsQ9 = 5000
-  const iterationsQ10 = 1000
-  const iterationsQ11 = 150
-  const iterationsQ12 = 5000
-  const iterationsQ13 = 10000
-  const iterationsQ14 = 5000
+  if (restQueries.length != graphQueries.length) {
+    console.log("Not equal amounts of tests for both APIs! Aborting...")
+  }
 
-  // // Run warmup.
-  // await warmupGraphQL()
+  // Run REST tests.
+  for (let i = 0; i < restQueries.length; i++) {
+    // Run warmup.
+    await warmupRest(250)
 
-  // // Run GraphQL queries.
-  // await runTestMethod(graph1, iterationsQ1, 'GraphQL', 'Q1')
-  // await runTestMethod(graph2, iterationsQ2, 'GraphQL', 'Q2')
-  // await runTestMethod(graph3, iterationsQ3, 'GraphQL', 'Q3')
-  // await runTestMethod(graph4, iterationsQ4, 'GraphQL', 'Q4')
-  // await runTestMethod(graph5, iterationsQ5, 'GraphQL', 'Q5')
-  // await runTestMethod(graph6, iterationsQ6, 'GraphQL', 'Q6')
-  // await runTestMethod(graph7, iterationsQ7, 'GraphQL', 'Q7')
-  // await runTestMethod(graph8, iterationsQ8, 'GraphQL', 'Q8')
-  // await runTestMethod(graph9, iterationsQ9, 'GraphQL', 'Q9')
-  // await runTestMethod(graph10, iterationsQ10, 'GraphQL', 'Q10')
-  // await runTestMethod(graph11, iterationsQ11, 'GraphQL', 'Q11')
-  // await runTestMethod(graph12, iterationsQ12, 'GraphQL', 'Q12')
-  // await runTestMethod(graph13, iterationsQ13, 'GraphQL', 'Q13')
-  // await runTestMethod(graph14, iterationsQ14, 'GraphQL', 'Q14')
+    // // Run REST queries.
+    await runTestMethod(restQueries[i], iterationCounts[i], "REST", `Q${i + 1}`, testSuiteIteration)
+  }
 
-  // // Run warmup.
-  // await warmupRest()
+  // Run GraphQL tests.
+  for (let i = 0; i < graphQueries.length; i++) {
+    // Run warmup.
+    await warmupGraphQL(250)
 
-  // // Run REST queries.
-  // await runTestMethod(rest1, iterationsQ1, 'REST', 'Q1')
-  // await runTestMethod(rest2, iterationsQ2, 'REST', 'Q2')
-  // await runTestMethod(rest3, iterationsQ3, 'REST', 'Q3')
-  // await runTestMethod(rest4, iterationsQ4, 'REST', 'Q4')
-  // await runTestMethod(rest5, iterationsQ5, 'REST', 'Q5')
-  // await runTestMethod(rest6, iterationsQ6, 'REST', 'Q6')
-  // await runTestMethod(rest7, iterationsQ7, 'REST', 'Q7')
-  // await runTestMethod(rest8, iterationsQ8, 'REST', 'Q8')
-  // await runTestMethod(rest9, iterationsQ9, 'REST', 'Q9')
-  // await runTestMethod(rest10, iterationsQ10, 'REST', 'Q10')
-  // await runTestMethod(rest11, iterationsQ11, 'REST', 'Q11')
-  // await runTestMethod(rest12, iterationsQ12, 'REST', 'Q12')
-  // await runTestMethod(rest13, iterationsQ13, 'REST', 'Q13')
-  // await runTestMethod(rest14, iterationsQ14, 'REST', 'Q14')
+    // // Run REST queries.
+    await runTestMethod(graphQueries[i], iterationCounts[i], "GraphQL", `Q${i + 1}`, testSuiteIteration)
+  }
+
+  // Run warmup.
+  await warmupGraphQL(250)
 
   // Test over-fetching.
-  for (let index = 0; index < 10; index++) {
-    // Run warmup.
-    await warmupGraphQL()
-
-    // Run tests.
-    await runTestMethod(graph15, iterationsQ1, 'GraphQL', 'Q15', index + 1)
-  }
+  await runTestMethod(graph15, iterationCounts[0], "GraphQL", "Q15", testSuiteIteration)
 }
 
 const runTestMethod = async (method, iterations, api, query, testSuiteNumber) => {
-  console.log('')
+  console.log("")
+  console.log(`=================== Test Suite ${testSuiteNumber} ==================`)
+  console.log("===================================================")
   console.log(`============ Running Tests for ${api} ${query} ============`)
-  console.log('')
+  console.log("")
 
   // Start new progress bar.
   const progressBar = new ProgressBar(iterations)
@@ -157,6 +174,13 @@ const runTestMethod = async (method, iterations, api, query, testSuiteNumber) =>
 const save = async (array, api, query, fileNumber, testSuiteNumber) => {
   // Write results to file.
   await writeFile(`./results/${api}/${query}/${testSuiteNumber}_${fileNumber}.json`, array)
+}
+
+async function main() {
+  // Run test suite 5 times.
+  for (let i = 0; i < 3; i++) {
+    await runTestSuite(i + 1)
+  }
 }
 
 main()
